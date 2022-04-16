@@ -27,6 +27,10 @@ std::vector<std::string> get_args(char** args, const int& size) {
         }
     }
 
+    if(arg_start_point == 0) {
+        return std::vector<std::string> {};
+    }
+
     for(int start = arg_start_point; start < size; start++) {
         prog_args.push_back(std::string(args[start]));
     }
