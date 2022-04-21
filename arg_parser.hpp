@@ -1,6 +1,6 @@
 #include <vector>
 #include <unordered_map>
-#include "lib/lib_string.cpp"
+#include "lib/lib_string.hpp"
 
 std::unordered_map<std::string, std::string> get_flags(char** args, const int& size) {
     std::unordered_map<std::string, std::string> flags_map;
