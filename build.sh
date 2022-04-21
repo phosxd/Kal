@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 
+CC="g++"
+SRC_FILE="kal.cpp"
+BIN_FILE="bin/kal"
+OPTIMIZATION="-O2"
+FLAGS="-s -pipe -Wall -Werror -pedantic -fstack-protector"
+
+SU="sudo"
+
 function build() {
     ! [ -d bin ] && mkdir bin
-    g++ kal.cpp -o bin/kal
+    ${CC} ${OPTIMIZATION} ${FLAGS} ${SRC_FILE} -o ${BIN_FILE}
 }
 
 function install() {
     build
-    sudo cp bin/kal /usr/local/bin
+    ${SU} cp bin/kal /usr/local/bin
 }
 
 [ "$1" == "build" ] && build
