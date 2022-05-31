@@ -30,7 +30,7 @@ namespace lib {
     }
 
 
-    std::vector<std::string> split(std::string text, char delimiter = ' ', char escape_char = '"') {
+    std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"') {
         int len = -1;
         int begin = 0;
         int size = text.size();
@@ -42,8 +42,8 @@ namespace lib {
             size++;
         }
 
-
         for(int current_index = 0; current_index < size; current_index++) {
+            std::cout << current_index << ": " << text[current_index] << std::endl;
             if(text[current_index] == escape_char) {
                 enable_split = !enable_split;
                 if(enable_split) {

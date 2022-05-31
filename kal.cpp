@@ -1,10 +1,8 @@
 #include <iostream>
 #include "arg_parser.hpp"
 #include "lib/lib_string.hpp"
-#include "preprocessor/remove_comments.hpp"
 #include "errors.hpp"
-#include "preprocessor/trim_spaces.hpp"
-#include "preprocessor/expand_files.hpp"
+#include "preprocessor.hpp"
 
 int main(int argc, char** argv) {
     if(argc == 1) {
