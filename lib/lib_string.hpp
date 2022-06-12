@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 namespace lib {
     bool ends_with(const std::string& major_string, const std::string& minor_string) {
@@ -43,14 +44,13 @@ namespace lib {
         }
 
         for(int current_index = 0; current_index < size; current_index++) {
-            std::cout << current_index << ": " << text[current_index] << std::endl;
-            if(text[current_index] == escape_char) {
+            if(text[current_index] == escape_char && text[current_index - 1] == delimiter) {
                 enable_split = !enable_split;
                 if(enable_split) {
                     begin++;
                 }
                 else {
-                    len -=2;
+                    len -= 2;
                 }
             }
 
