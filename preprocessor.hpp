@@ -3,6 +3,22 @@
 #include "lib/lib_string.hpp"
 
 namespace preproc {
+    void squash_vector(std::vector<std::string>& orignal, const std::vector<std::string>& other) {
+        int orignal_size = orignal.size();
+        for(int orignal_count = 0; orignal_count < orignal_size; orignal_count++) {
+            if(orignal[orignal_count][0] == '@') {
+                std::vector<std::string>::iterator orignal_itr = orignal.begin();
+                orignal[orignal_count] = other[0];
+
+                int other_size = other.size();
+                for(int other_count = 1; other_count < other_size; other_count++) {
+                    orignal.insert(orignal_itr + orignal_count + other_count, other[other_count]);
+                    orignal_itr = orignal.begin();
+                }
+            }
+        }
+    }
+
     std::string remove_comments(const std::string& line) {
         if(line == "" || line == ";" || line[0] == ';') {
             return "";
@@ -38,5 +54,7 @@ namespace preproc {
                 expanded_contents.emplace_back(line_contents[line_itr]);
             }
         }
+
+
     }
 }
