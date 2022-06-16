@@ -38,7 +38,7 @@ std::vector<std::string> get_args(char** args, const int& size) {
     }
 
     for(int start = arg_start_point; start < size; start++) {
-        prog_args.push_back(std::string(args[start]));
+        prog_args.emplace_back(std::string(args[start]));
     }
 
     return prog_args;
