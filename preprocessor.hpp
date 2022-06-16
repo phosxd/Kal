@@ -43,7 +43,6 @@ namespace preproc {
     }
 
     std::vector<std::string> clean_contents(std::vector<std::string>& line_contents) {
-        //std::vector<std::string> line_contents = lib::split(file_contents, '\n');
         std::vector<std::string> cleaned_contents;
         int line_contents_size = line_contents.size();
 
@@ -78,6 +77,12 @@ namespace preproc {
                 std::vector<std::string> included_cleaned_source_lines = clean_contents(included_source_lines);
                 squash_vector(expanded_contents, included_cleaned_source_lines, content_itr);
             }
+        }
+    }
+
+    void preprocess(std::vector<std::string>& processed_contents) {
+        for(uint64_t line_count = 0; line_count < processed_contents.size(); line_count++) {
+            expand_files(processed_contents);
         }
     }
 }
