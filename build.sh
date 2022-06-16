@@ -2,7 +2,7 @@
 
 CC="g++"
 SRC_FILE="kal.cpp"
-BIN_FILE="bin/kal-$(uname)-$(uname -m)"
+BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
 OPTIMIZATION="-O2"
 FLAGS="-s -pipe -Wall -Werror -pedantic -fstack-protector"
 
@@ -15,7 +15,7 @@ function build() {
 
 function install() {
     build
-    ${SU} cp bin/kal-$(uname)-$(uname -m) /usr/local/bin/kal
+    ${SU} cp $BIN_FILE /usr/local/bin/kal
 }
 
 [ "$1" == "compile" ] && build
