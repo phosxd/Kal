@@ -18,5 +18,11 @@ function install() {
     ${SU} cp $BIN_FILE /usr/local/bin/kal
 }
 
+function docker_run() {
+    docker build -t kal .
+    docker run -it --rm --name Kal kal
+}
+
+[ "$1" == "docker" ] && docker_run
 [ "$1" == "compile" ] && build
 [ "$1" == "install" ] && install
