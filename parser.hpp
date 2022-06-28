@@ -1,10 +1,11 @@
 #pragma once
 
 #include "lexer.hpp"
+#include "lib/lib_string.hpp"
 
 namespace parser {
     void std_out(std::string arg) {
-        std::cout << arg;
+        std::cout << lib::render_escape_chars(arg);
     }
 }
 

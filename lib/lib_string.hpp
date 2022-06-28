@@ -8,6 +8,25 @@
 #include "../errors.hpp"
 
 namespace lib {
+    std::string render_escape_chars(std::string text) {
+        int text_size = text.size();
+
+        for(int current_char = 0; current_char < text_size; current_char++) {
+            if(text[current_char] == '\\') {
+                if(text[current_char + 1] == 'n') {
+                    text[current_char] = '\n';
+                    text[current_char + 1] = '\0';
+                }
+                else if(text[current_char + 1] == 't') {
+                    text[current_char] = '\t';
+                    text[current_char + 1] = '\0';
+                }
+            }
+        }
+
+        return text;
+    }
+
     bool ends_with(const std::string& major_string, const std::string& minor_string) {
         int major_string_size = major_string.size();
         int minor_string_size = minor_string.size();
