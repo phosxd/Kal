@@ -113,7 +113,10 @@ namespace lib {
             len++;
 
             if((text[current_index] == delimiter) && enable_split) {
-                words.emplace_back(text.substr(begin, len));
+                std::string required_string = text.substr(begin, len);
+                if(required_string != "") {
+                   words.emplace_back(required_string);
+                }
                 begin = current_index + 1;
                 len = -1;
             }

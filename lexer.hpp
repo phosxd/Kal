@@ -24,7 +24,6 @@ namespace lexer {
 
         for(int line = 0; line < lines; line++) {
             std::vector<std::string> tokens = lib::split(source_lines[line], ' ');
-            tokens = clean_tokens(tokens);
             all_tokens.emplace_back(tokens);
         }
 
