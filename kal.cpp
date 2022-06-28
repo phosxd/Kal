@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "lexer.hpp"
+#include "parser.hpp"
 #include "errors.hpp"
 #include "arg_parser.hpp"
 #include "preprocessor.hpp"
@@ -38,5 +38,8 @@ int main(int argc, char** argv) {
         return 0;
     }
     
+    std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
+    line_exec(tokens);
+
     return 0;
 }

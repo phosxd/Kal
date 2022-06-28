@@ -5,7 +5,7 @@
 #include "lib/lib_string.hpp"
 
 namespace lexer {
-    std::vector<std::string> clean_tokens(std::vector<std::string>& tokens) {
+    std::vector<std::string> clean_tokens(const std::vector<std::string>& tokens) {
         int tokens_str_size = tokens.size();
         std::vector<std::string> cleaned_tokens;
 
@@ -18,12 +18,13 @@ namespace lexer {
         return cleaned_tokens;
     }
 
-    std::vector<std::vector<std::string>> tokenize(std::vector<std::string>& source_lines) {
+    std::vector<std::vector<std::string>> tokenize(const std::vector<std::string>& source_lines) {
         int lines = source_lines.size();
         std::vector<std::vector<std::string>> all_tokens;
 
         for(int line = 0; line < lines; line++) {
-            std::vector<std::string> tokens = lib::split(source_lines[line], ' ');
+            std::string current_line = source_lines[line];
+            std::vector<std::string> tokens = lib::split(current_line);
             all_tokens.emplace_back(tokens);
         }
 
