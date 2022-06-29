@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     }
     
     std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
-    line_exec(tokens);
+    int exit_code = line_exec(tokens);
 
-    return 0;
+    return exit_code;
 }
