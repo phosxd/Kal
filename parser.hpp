@@ -21,7 +21,11 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens) {
         std::vector<std::string> cmd = tokens[line];
         int cmd_size = cmd.size();
 
-        if(cmd[0] == "stdout") {
+        if(cmd[0][0] == '#' && cmd[0][1] == '!') {
+            continue;
+        }
+
+        else if(cmd[0] == "stdout") {
             if(cmd_size == 1) {
                 std::cout << "";
             }
