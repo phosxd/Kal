@@ -2,6 +2,7 @@
 
 #include "lexer.hpp"
 #include "errors.hpp"
+#include "variable.hpp"
 #include "lib/lib_string.hpp"
 
 namespace parser {
@@ -14,7 +15,7 @@ namespace parser {
     }
 }
 
-int line_exec(const std::vector<std::vector<std::string>>& tokens) {
+int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var) {
     int tokens_list = tokens.size();
 
     for(int line = 0; line < tokens_list; line++) {
@@ -40,6 +41,12 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens) {
 
         else if(cmd[0] == "stderr" && cmd_size == 2) {
             parser::std_err(cmd[1]);
+        }
+
+        else if(cmd[0] == "var") {
+            std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
+            var.var_add(var_data[0], var_data[1], var_data[2]);
+            continue;
         }
     }
 

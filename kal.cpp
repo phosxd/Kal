@@ -2,12 +2,15 @@
 
 #include "parser.hpp"
 #include "errors.hpp"
+#include "variable.hpp"
 #include "arg_parser.hpp"
 #include "preprocessor.hpp"
 #include "lib/lib_string.hpp"
 
 int main(int argc, char** argv) {
     ArgParser arg_parser = ArgParser(argc, argv);
+    VarTable var = VarTable();
+
     if(argc == 1) {
         errors::kal_error("No arguments passed.");
         return 1;
@@ -38,7 +41,7 @@ int main(int argc, char** argv) {
     }
     
     std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
-    int exit_code = line_exec(tokens);
+    int exit_code = line_exec(tokens, var);
 
     return exit_code;
 }

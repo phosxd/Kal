@@ -12,7 +12,7 @@ class VarTable {
         std::unordered_map<std::string, std::string> type_track;
 
     public:
-        void add(std::string var_type, std::string var_name, std::string var_value) {
+        void var_add(std::string var_type, std::string var_name, std::string var_value) {
             type_track[var_name] = var_type;
 
             if(var_type == "str") {
@@ -36,7 +36,7 @@ class VarTable {
             }
         }
 
-        void delete(std::string var_name) {
+        void var_delete(std::string var_name) {
             std::string var_type = type_track[var_name];
 
             if(var_type == "str") {
@@ -46,12 +46,12 @@ class VarTable {
                 numbers.erase(var_name);
             }
             else if(var_type == "bool") {
-                boolens.erase(var_name);
+                booleans.erase(var_name);
             }
         }
 
         std::string get_type(std::string var_name) {
-            std::string var_type = type_check[var_name];
+            std::string var_type = type_track[var_name];
             return var_type;
         }
 
