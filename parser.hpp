@@ -46,7 +46,6 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
         else if(cmd[0] == "var") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
             var.var_add(var_data[0], var_data[1], var_data[2]);
-            continue;
         }
     }
 
