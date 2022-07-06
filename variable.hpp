@@ -1,0 +1,72 @@
+#pragma once
+
+#include <string>
+#include <unordered_map>
+
+class VarTable {
+    private:
+        std::unordered_map<std::string, bool> booleans;
+        std::unordered_map<std::string, double> numbers;
+        std::unordered_map<std::string, std::string> strings;
+
+        std::unordered_map<std::string, std::string> type_track;
+
+    public:
+        void add(std::string var_type, std::string var_name, std::string var_value) {
+            type_track[var_name] = var_type;
+
+            if(var_type == "str") {
+                strings[var_name] = var_value;
+            }
+
+            else if(var_type == "num") {
+                double casted_var_value = std::stod(var_value);
+                numbers[var_name] = casted_var_value;
+            }
+
+            else if(var_type == "bool") {
+                bool boolean_value;
+                if(var_value == "true") {
+                    boolean_value = true;
+                }
+                if(var_value == "false") {
+                    boolean_value = false;
+                }
+                booleans[var_name] = boolean_value;
+            }
+        }
+
+        void delete(std::string var_name) {
+            std::string var_type = type_track[var_name];
+
+            if(var_type == "str") {
+                strings.erase(var_name);
+            }
+            else if(var_type == "num") {
+                numbers.erase(var_name);
+            }
+            else if(var_type == "bool") {
+                boolens.erase(var_name);
+            }
+        }
+
+        std::string get_type(std::string var_name) {
+            std::string var_type = type_check[var_name];
+            return var_type;
+        }
+
+        std::string get_from_strings(std::string var_name) {
+            std::string var_val = strings[var_name];
+            return var_val;
+        }
+
+        double get_from_numbers(std::string var_name) {
+            double var_val = numbers[var_name];
+            return var_val;
+        }
+
+        bool get_from_booleans(std::string var_name) {
+            bool var_val = booleans[var_name];
+            return var_val;
+        }
+};
