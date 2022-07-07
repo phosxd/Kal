@@ -33,4 +33,17 @@ namespace lexer {
         var_data = {var_type, var_name, var_val};
         return var_data;
     }
+
+    std::vector<std::string> lex_variable_reassignment(const std::vector<std::string>& tokens) {
+        std::vector<std::string> var_reassignment;
+
+        std::string complete_line = lib::vector_to_string(tokens, "");
+        std::vector<std::string> var_val_split = lib::split(complete_line, '=');
+        std::string var_name = var_val_split[0].substr(1, var_val_split[0].size() - 1);
+        std::string var_val = var_val_split[1];
+
+        var_reassignment = {var_name, var_val};
+        return var_reassignment;
+    }
+
 }
