@@ -58,6 +58,10 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
             parser::std_err(cmd[1]);
         }
 
+        else if(cmd[0] == "stdin" && cmd_size == 2) {
+            var.read_var(cmd[1].substr(1, cmd[1].size() - 1));
+        }
+
         else if(cmd[0] == "var") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
             var.var_add(var_data[0], var_data[1], var_data[2]);

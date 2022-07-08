@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <unordered_map>
 
@@ -69,4 +70,19 @@ class VarTable {
             bool var_val = booleans[var_name];
             return var_val;
         }
+
+        void read_var(std::string var_name) {
+            std::string var_type = get_type(var_name);
+
+            if(var_type == "str") {
+                std::getline(std::cin, strings[var_name]);
+            }
+            else if(var_type == "num") {
+                std::cin >> numbers[var_name];
+            }
+            else if(var_type == "bool") {
+                std::cin >> booleans[var_name];
+            }
+        }
+
 };
