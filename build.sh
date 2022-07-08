@@ -2,6 +2,7 @@
 
 DEFAULT="\e[00;39m"
 DEFAULT_BOLD="\e[01;39m"
+GREEN="\e[01;32m"
 
 CC="g++"
 SRC_FILE="kal.cpp"
@@ -13,18 +14,20 @@ SU="sudo"
 
 function build() {
     ! [ -d bin ] && mkdir bin
+    echo -e "${GREEN} * Compiling Kal${DEFAULT}"
     ${CC} ${OPTIMIZATION} ${FLAGS} ${SRC_FILE} -o ${BIN_FILE}
 }
 
 function install() {
     build
+    echo -e "${GREEN} * Installing Kal to /usr/local/bin/${DEFAULT}"
     ${SU} cp $BIN_FILE /usr/local/bin/kal
 }
 
 function docker_run() {
     docker build -t kal .
     clear
-    echo -e "${DEFAULT_BOLD}* Kal Docker Container running...${DEFAULT}"
+    echo -e "${DEFAULT_BOLD} * Kal Docker Container running...${DEFAULT}"
     docker run -it --rm --name Kal kal
 }
 
