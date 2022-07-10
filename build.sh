@@ -11,6 +11,7 @@ OPTIMIZATION="-O2"
 FLAGS="-s -pipe -Wall -static -Werror -pedantic -fstack-protector"
 
 SU="sudo"
+[ $(whoami) == "root" ] && SU=""
 
 function build() {
     ! [ -d bin ] && mkdir bin
