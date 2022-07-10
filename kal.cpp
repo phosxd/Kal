@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 
         if(arg_parser.flag_exists("-o")) {
             std::string write_path = arg_parser.get_value("-o");
-            std::string preprocessed_code = lib::vector_to_string(source_lines);
+            std::string preprocessed_code = lib::vector_to_string(source_lines, "\n");
             lib::write_file(write_path, preprocessed_code);
             return 0;
         }
