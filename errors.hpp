@@ -10,4 +10,8 @@ namespace errors {
     void stdout_error(std::string second_parameter) {
         std::cout << style::red << style::bold << "stdout:" << style::reset << style::red << " stdout takes only one parameter but multiple parameters were passed: " << second_parameter << "..." << style::reset << std::endl;
     }
+    
+    void var_redeclare_error(std::string var_name, std::string var_type) {
+        std::cout << style::red << style::bold << "Variable:" << style::reset << style::red << " Variable `" << var_name << "` of type `" << var_type << "` already exists." << style::reset << std::endl;
+    }
 }

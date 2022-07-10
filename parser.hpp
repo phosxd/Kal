@@ -15,7 +15,7 @@ namespace parser {
     }
 }
 
-int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var) {
+void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var) {
     int tokens_list = tokens.size();
 
     for(int line = 0; line < tokens_list; line++) {
@@ -24,6 +24,11 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
 
         if(cmd[0][0] == '#' && cmd[0][1] == '!') {
             continue;
+        }
+
+        else if(cmd[0] == "exit" && cmd_size == 2) {
+            int exit_code = stoi(cmd[1]);
+            exit(exit_code);
         }
 
         else if(cmd[0] == "stdout") {
@@ -50,7 +55,7 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
             }
             else {
                 errors::stdout_error(cmd[2]);
-                return 1;
+                exit(1);
             }
         }
 
@@ -64,7 +69,7 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
 
         else if(cmd[0] == "var") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
-            var.var_add(var_data[0], var_data[1], var_data[2]);
+            var.var_add(var_data[0], var_data[1], var_data[2], true);
         }
 
         else if(cmd[0][0] == '$') {
@@ -73,6 +78,4 @@ int line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var
         }
 
     }
-
-    return 0;
 }

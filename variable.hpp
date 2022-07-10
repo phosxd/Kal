@@ -1,5 +1,7 @@
 #pragma once
 
+#include "errors.hpp"
+
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -13,7 +15,23 @@ class VarTable {
         std::unordered_map<std::string, std::string> type_check;
 
     public:
-        void var_add(std::string var_type, std::string var_name, std::string var_value) {
+        std::string get_type(std::string var_name) {
+            std::string var_type = type_check[var_name];
+            return var_type;
+        }
+
+        bool var_exists(std::string var_name) {
+            bool exist_condition = (get_type(var_name) != "");
+            return exist_condition;
+        }
+
+        void var_add(std::string var_type, std::string var_name, std::string var_value, bool declaration = false) {
+            if(var_exists(var_name) && declaration) {
+                errors::var_redeclare_error(var_name, var_type);
+                exit(1);
+            }
+
+
             type_check[var_name] = var_type;
 
             if(var_type == "str") {
@@ -49,11 +67,6 @@ class VarTable {
             else if(var_type == "bool") {
                 booleans.erase(var_name);
             }
-        }
-
-        std::string get_type(std::string var_name) {
-            std::string var_type = type_check[var_name];
-            return var_type;
         }
 
         std::string get_from_strings(std::string var_name) {
