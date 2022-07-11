@@ -65,9 +65,9 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             var.read_var(lexer::get_var_name_from_token(cmd[1]));
         }
 
-        else if(cmd[0] == "var") {
+        else if(cmd[0] == "var" || cmd[0] == "const") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
-            var.var_add(var_data[0], var_data[1], var_data[2], true);
+            var.var_add(cmd[0], var_data[0], var_data[1], var_data[2], true);
         }
 
         else if(cmd[0] == "del" && cmd_size == 2) {
@@ -76,7 +76,7 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
 
         else if(cmd[0][0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
-            var.var_add(var.get_type(var_data[0]), var_data[0], var_data[1]);
+            var.var_add(var.get_mem_type(var_data[0]), var.get_type(var_data[0]), var_data[0], var_data[1]);
         }
 
         else if(cmd[0] == "throw" && cmd_size == 3) {

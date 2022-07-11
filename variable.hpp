@@ -13,6 +13,7 @@ class VarTable {
         std::unordered_map<std::string, std::string> strings;
 
         std::unordered_map<std::string, std::string> type_check;
+        std::unordered_map<std::string, std::string> mem_check;
 
     public:
         std::string get_type(std::string var_name) {
@@ -20,19 +21,30 @@ class VarTable {
             return var_type;
         }
 
+        std::string get_mem_type(std::string var_name) {
+            std::string var_mem_type = mem_check[var_name];
+            return var_mem_type;
+        }
+
         bool var_exists(std::string var_name) {
             bool exist_condition = (get_type(var_name) != "");
             return exist_condition;
         }
 
-        void var_add(std::string var_type, std::string var_name, std::string var_value, bool declaration = false) {
+        void var_add(std::string mem_type, std::string var_type, std::string var_name, std::string var_value, bool declaration = false) {
             if(var_exists(var_name) && declaration) {
                 errors::var_redeclare_error(var_name, get_type(var_name));
                 exit(1);
             }
 
+            if(var_exists(var_name) && get_mem_type(var_name) == "const") {
+                errors::change_const_var_error(var_name);
+                exit(1);
+            }
+
 
             type_check[var_name] = var_type;
+            mem_check[var_name] = mem_type;
 
             if(var_type == "str") {
                 strings[var_name] = var_value;

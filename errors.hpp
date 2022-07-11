@@ -15,4 +15,8 @@ namespace errors {
     void var_redeclare_error(std::string var_name, std::string var_type) {
         std::cerr << style::red << style::bold << "Variable:" << style::reset << style::red << " Variable `" << var_name << "` of type `" << var_type << "` already exists." << style::reset << std::endl;
     }
+
+    void change_const_var_error(std::string var_name) {
+        std::cerr << style::red << style::bold << "Variable:" << style::reset << style::red << " Cannot modify `const` variable `" << var_name << "`." << std::endl;
+    }
 }
