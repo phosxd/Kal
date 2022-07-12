@@ -30,6 +30,9 @@ class ArgParser {
                     arg_start_point = arg_itr;
                     break;
                 }
+                else {
+                    errors::kal_error("File `" + arg_str + "` is an invalid Kal file.");
+                }
             }
 
             if(arg_start_point == 0) {
