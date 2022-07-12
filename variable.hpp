@@ -34,12 +34,10 @@ class VarTable {
         void var_add(std::string mem_type, std::string var_type, std::string var_name, std::string var_value, bool declaration = false) {
             if(var_exists(var_name) && declaration) {
                 errors::var_redeclare_error(var_name, get_type(var_name));
-                exit(1);
             }
 
             if(var_exists(var_name) && get_mem_type(var_name) == "const") {
                 errors::change_const_var_error(var_name);
-                exit(1);
             }
 
 

@@ -43,8 +43,7 @@ namespace lib {
         std::ifstream source_file(file_path);
         if(!source_file.good()) {
             if(by_interpreter) {
-                errors::kal_error("File: " + file_path + " does not exist.");
-                return "";
+                errors::kal_error("File `" + file_path + "` does not exist.");
             }
             std::cout << "Kal: File " << file_path << " does not exist." << std::endl;
             return "";
