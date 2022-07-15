@@ -16,6 +16,16 @@ namespace shell {
             std::cout << style::bold << "\nKal" << style::reset << " " << style::bold << style::green << "[" << count << "]:" << style::reset << " ";
             std::getline(std::cin, command);
             command = preproc::remove_comments(command);
+            command = lib::trim_leading(command);
+            command = lib::trim_trailing(command);
+
+            if(command[0] == '@') {
+                std::string file_name = command.substr(1);
+                std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
+                preproc::preprocess(source_lines);
+                std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
+                line_exec(tokens, var);
+            }
 
             if(command == "") {
                 continue;
