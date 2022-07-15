@@ -70,7 +70,6 @@ namespace preproc {
         int clean_contents_size = expanded_contents.size();
         for(int content_itr = 0; content_itr < clean_contents_size; content_itr++) {
             if(expanded_contents[content_itr][0] == '@') {
-                //int file_path_size = expanded_contents[content_itr].size();
                 std::string include_file_path = expanded_contents[content_itr].substr(1);
                 std::vector<std::string> included_cleaned_source_lines = initial_preprocessing(include_file_path);
                 squash_vector(expanded_contents, included_cleaned_source_lines, content_itr);
