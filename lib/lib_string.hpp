@@ -36,7 +36,7 @@ namespace lib {
         }
 
         int diff_size = major_string_size - minor_string_size;
-        return major_string.substr(diff_size, major_string_size - 1) == minor_string;
+        return major_string.substr(diff_size) == minor_string;
     }
 
     std::string read_file(std::string file_path, bool by_interpreter = false) {
