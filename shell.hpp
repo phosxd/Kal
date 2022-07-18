@@ -32,7 +32,11 @@ namespace shell {
                 continue;
             }
 
-            std::vector<std::vector<std::string>> tokens = { lib::split(command, ' ') };
+            std::vector<std::string> line_tokens = lib::split(command, ' ');
+            if(line_tokens[0] == "var" || line_tokens[0] == "const") {
+                line_tokens = lib::split(command, ' ', '"', true);
+            }
+            std::vector<std::vector<std::string>> tokens = { line_tokens };
             line_exec(tokens, var);
 
             count++;

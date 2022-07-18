@@ -70,6 +70,8 @@ namespace lexer {
     std::vector<std::string> lex_list_values(std::string& str_list, const std::string& var_name) {
         int str_list_size = str_list.size();
         if(str_list[0] != '[' || str_list[str_list_size - 1] != ']') {
+            std::cout << str_list[0] << str_list[str_list_size - 1] << std::endl;
+            std::cout << str_list << std::endl;
             errors::initializer_list_error(var_name);
         }
         std::string values = str_list.substr(1, str_list_size - 2);
