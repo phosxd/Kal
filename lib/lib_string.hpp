@@ -132,7 +132,7 @@ namespace lib {
         }
 
         for(int current_index = 0; current_index < size; current_index++) {
-            if(((text[current_index] == escape_char) && (text[current_index - 1] == delimiter)) || !enable_split) {
+            if((text[current_index] == escape_char) && ((text[current_index - 1] == delimiter) || !enable_split)) {
                 enable_split = !enable_split;
                 if(enable_split) {
                     begin++;
