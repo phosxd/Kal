@@ -114,7 +114,7 @@ namespace lib {
         return false;
     }
 
-    std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"', bool for_tokenizer = false) {
+    std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"') {
         int len = -1;
         int begin = 0;
         int size = text.size();
@@ -132,11 +132,7 @@ namespace lib {
         }
 
         for(int current_index = 0; current_index < size; current_index++) {
-            bool tokenizer_condition = text[current_index - 1] == delimiter || !enable_split;
-            if(for_tokenizer) {
-                tokenizer_condition = text[current_index - 1] == delimiter && !enable_split;
-            }
-            if((text[current_index] == escape_char) && tokenizer_condition) {
+            if(((text[current_index] == escape_char) && (text[current_index - 1] == delimiter)) || !enable_split) {
                 enable_split = !enable_split;
                 if(enable_split) {
                     begin++;

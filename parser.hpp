@@ -117,7 +117,6 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                     errors::types_incompatible_error(var_data[0], first_var_type, second_var, second_var_type);
                 }
 
-                //std::string second_var_val = var_data[1];
                 if(first_var_type == "str") {
                     second_var_val = var.get_from_strings(second_var);
                 }
