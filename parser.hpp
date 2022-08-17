@@ -48,10 +48,7 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                     else {
                         std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
                         std::string var_type = var.get_type(var_name);
-                        if(var_type == "") {
-                            errors::undefined_var_error(var_name);
-                        }
-                        else if(var_type == "str") {
+                        if(var_type == "str") {
                             parser::std_out(var.get_from_strings(var_name));
                         }
                         else if(var_type == "num") {
