@@ -1,0 +1,12 @@
+#!/usr/bin/env kal
+
+; Kal program to greet the user.
+
+var str: name
+var str: greeting
+
+stdout "Your name? "
+stdin $name
+
+concat "Hello " $name "!\n" -> $greeting
+stdout $greeting
