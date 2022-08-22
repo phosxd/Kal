@@ -38,6 +38,11 @@ namespace errors {
         exit(1);
     }
 
+    void expected_type_error(std::string var_type) {
+        std::cerr << style::red << style::bold << "Type: " << style::reset << style::red << "Data of type `" << var_type << "` expected." << std::endl;
+        exit(1);
+    }
+
     void cannot_write_to_literal_error(const std::string& literal) {
         std::cerr << style::red << style::bold << "Variable: " << style::reset << style::red << "Cannot write data to string literal `" << literal << "`." << style::reset << std::endl;
         exit(1);

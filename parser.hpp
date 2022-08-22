@@ -162,8 +162,7 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
                 if(current_value[0] == '$') {
                     std::string var_name = lexer::get_var_name_from_token(current_value);
                     if(var.get_type(var_name) != "str") {
-                        std::cout << "Wrong Type" << std::endl;
-                        exit(1);
+                        errors::expected_type_error("str");
                     }
                     current_value = var.get_from_strings(var_name);
                 }
@@ -180,8 +179,12 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             }
 
             else if(tok_size == 2) {
-                std::string destination_string = lexer::get_var_name_from_token(tok[1]);
-                destination_string = lexer::get_var_name_from_token(destination_string.substr(2, destination_string.size() - 4));
+                int var_start = 0;
+                while(tok[1][var_start] != '$') {
+                    var_start++;
+                }
+                std::string destination_string = lexer::get_var_name_from_token(tok[1].substr(var_start, tok[1].size() - (var_start + 2)));
+                std::cout << "[" << destination_string << "]" << std::endl;
                 var.var_add("var", "str", destination_string, concat_str);
             }
         }
