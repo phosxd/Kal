@@ -2,8 +2,7 @@
 
 ; Kal program to greet the user.
 
-var str: name
-var str: greeting
+var str: name, greeting
 
 stdout "Your name? "
 stdin $name
