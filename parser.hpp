@@ -16,6 +16,7 @@ namespace parser {
 }
 
 void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& var) {
+    bool warn = true;
     int tokens_list = tokens.size();
 
     for(int line = 0; line < tokens_list; line++) {
@@ -33,6 +34,20 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
             else {
                 int exit_code = stoi(cmd[1]);
                 exit(exit_code);
+            }
+        }
+
+        else if(cmd[0] == "warn") {
+            if(cmd_size == 1) {
+                warn = !warn;
+            }
+            else if(cmd_size == 2) {
+                if(cmd[1] == "off") {
+                    warn = false;
+                }
+                else if(cmd[1] == "on") {
+                    warn = true;
+                }
             }
         }
 
@@ -76,6 +91,10 @@ void line_exec(const std::vector<std::vector<std::string>>& tokens, VarTable& va
 
         else if(cmd[0] == "var" || cmd[0] == "const") {
             std::vector<std::string> var_data = lexer::lex_variable_declaration(cmd);
+
+            if(cmd[0] == "const" && var_data[2] == "" && warn) {
+                warnings::const_uninitialized_warning(var_data[1]);
+            }
 
             if(var_data[2] == "") {
                 std::vector<std::string> multiple_vars = lib::split(var_data[1], ',');

@@ -2,6 +2,13 @@
 
 #include "lib/lib_style.hpp"
 
+namespace warnings {
+    void const_uninitialized_warning(const std::string& const_name) {
+        std::cerr << style::yellow << style::bold << "Variable:" << style::reset << style::yellow << " Uninitialized constant(s) `" << const_name << "` won't accept assignment later." << style::reset << std::endl;
+        exit(2);
+    }
+}
+
 namespace errors {
     void throw_err(std::string error_head, std::string error_body) {
         std::cerr << style::red << style::bold << error_head << ":" << style::reset << style::red << " " << error_body << style::reset << std::endl;
