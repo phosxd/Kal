@@ -21,7 +21,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::string file_name = arg_parser.get_arg(0);
+    //std::string file_name = arg_parser.get_arg(0);
+    std::vector<std::string> args = arg_parser.get_args();
+    std::string file_name = args[0];
+
     std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
     preproc::preprocess(source_lines, file_name);
 
@@ -47,7 +50,7 @@ int main(int argc, char** argv) {
     }
     
     std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
-    line_exec(tokens, var);
+    line_exec(tokens, var, args);
 
     return 0;
 }

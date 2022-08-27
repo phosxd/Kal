@@ -20,12 +20,13 @@ namespace shell {
             command = lib::trim_leading(command);
             command = lib::trim_trailing(command);
 
+            std::vector<std::string> prog_args = {};
             if(command[0] == '@') {
                 std::string file_name = command.substr(1);
                 std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
                 preproc::preprocess(source_lines, init_file_path);
                 std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
-                line_exec(tokens, var);
+                line_exec(tokens, var, prog_args);
             }
 
             if(command == "") {
@@ -33,7 +34,7 @@ namespace shell {
             }
 
             std::vector<std::vector<std::string>> tokens = { lib::split(command, ' ') };
-            line_exec(tokens, var);
+            line_exec(tokens, var, prog_args);
 
             count++;
         }
