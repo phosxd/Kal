@@ -2,6 +2,7 @@
 
 DEFAULT="\e[00;39m"
 DEFAULT_BOLD="\e[01;39m"
+BLUE="\e[01;34m"
 GREEN="\e[01;32m"
 
 CC="g++"
@@ -12,6 +13,20 @@ FLAGS="-s -pipe -Wall -static -Werror -pedantic -fstack-protector"
 
 SU="sudo"
 [ $(whoami) == "root" ] && SU=""
+
+function get_help() {
+    echo -e "${BLUE}"
+    echo -e "   ┌─────────────────────────────────────────────────────────┐"
+    echo -e "   │                     Kal Build Help                      │"
+    echo -e "   ├─────────────────────────────────────────────────────────┤"
+    echo -e "   ${GREEN}│                                                         │"
+    echo -e "   │ ${DEFAULT_BOLD}./build.sh install      ${GREEN}Compiles and Installs Kal.      │"
+    echo -e "   │ ${DEFAULT_BOLD}./build.sh compile      ${GREEN}Compiles Kal.                   │"
+    echo -e "   │ ${DEFAULT_BOLD}./build.sh docker       ${GREEN}Runs Kal in a Docker container. │"
+    echo -e "   │ ${DEFAULT_BOLD}./build.sh help         ${GREEN}Displays this help message.     │"
+    echo -e "   │                                                         │"
+    echo -e "   └─────────────────────────────────────────────────────────┘${DEFAULT}\n"
+}
 
 function vim_ft() {
     echo -e "${GREEN} * Installing Kal Filetype for Vim${DEFAULT}"
@@ -41,7 +56,14 @@ function docker_run() {
     docker run -it --rm --name Kal kal
 }
 
-[ "$1" == "vim" ] && vim_ft
-[ "$1" == "docker" ] && docker_run
-[ "$1" == "compile" ] && compile
-[ "$1" == "install" ] && install
+if [ -z "$1" ]; then
+    get_help
+elif [ "$1" == "docker" ]; then
+    docker_run
+elif [ "$1" == "compile" ]; then
+    compile
+elif [ "$1" == "install" ]; then
+    install
+else
+    get_help
+fi
