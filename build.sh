@@ -30,10 +30,13 @@ function get_help() {
 
 function vim_ft() {
     echo -e "${GREEN} * Installing Kal Filetype for Vim${DEFAULT}"
+    ! [ -f ~/.vimrc ] && touch ~/.vimrc
     ! [ -d ~/.vim/syntax ] && mkdir -p ~/.vim/syntax
     cp syntax/kal.vim ~/.vim/syntax
+    syntax_enabled=$(grep "syntax on" ~/.vimrc)
+    [ -z "$syntax_enabled" ] && echo "syntax on" >> ~/.vimrc
     ft_exists=$(grep "kal" ~/.vimrc)
-    [ -z "$ft_exists" ] && echo -e "\nau BufRead,BufNewFile *.kal set filetype=kal" >> ~/.vimrc
+    [ -z "$ft_exists" ] && echo -e "\nau BufRead,BufNewFile *.kal set filetype=kal number autoindent noswapfile hlsearch incsearch tabstop=4 shiftwidth=4 clipboard=unnamedplus" >> ~/.vimrc
 }
 
 function compile() {
