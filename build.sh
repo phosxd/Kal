@@ -16,16 +16,16 @@ SU="sudo"
 
 function get_help() {
     echo -e "${BLUE}"
-    echo -e "   ┌─────────────────────────────────────────────────────────┐"
-    echo -e "   │                     Kal Build Help                      │"
-    echo -e "   ├─────────────────────────────────────────────────────────┤"
-    echo -e "   ${GREEN}│                                                         │"
-    echo -e "   │ ${DEFAULT_BOLD}./build.sh install      ${GREEN}Compiles and Installs Kal.      │"
-    echo -e "   │ ${DEFAULT_BOLD}./build.sh compile      ${GREEN}Compiles Kal.                   │"
-    echo -e "   │ ${DEFAULT_BOLD}./build.sh docker       ${GREEN}Runs Docker container for Kal.  │"
-    echo -e "   │ ${DEFAULT_BOLD}./build.sh help         ${GREEN}Displays this help message.     │"
-    echo -e "   │                                                         │"
-    echo -e "   └─────────────────────────────────────────────────────────┘${DEFAULT}\n"
+    echo -e "    ┌─────────────────────────────────────────────────────────┐"
+    echo -e "    │                     Kal Build Help                      │"
+    echo -e "    ├─────────────────────────────────────────────────────────┤"
+    echo -e "    ${GREEN}│                                                         │"
+    echo -e "    │ ${DEFAULT_BOLD}./build.sh install      ${GREEN}Compiles and Installs Kal.      │"
+    echo -e "    │ ${DEFAULT_BOLD}./build.sh compile      ${GREEN}Compiles Kal.                   │"
+    echo -e "    │ ${DEFAULT_BOLD}./build.sh docker       ${GREEN}Runs Docker container for Kal.  │"
+    echo -e "    │ ${DEFAULT_BOLD}./build.sh help         ${GREEN}Displays this help message.     │"
+    echo -e "    │                                                         │"
+    echo -e "    └─────────────────────────────────────────────────────────┘${DEFAULT}\n"
 }
 
 function vim_ft() {
@@ -33,10 +33,8 @@ function vim_ft() {
     ! [ -f ~/.vimrc ] && touch ~/.vimrc
     ! [ -d ~/.vim/syntax ] && mkdir -p ~/.vim/syntax
     cp syntax/kal.vim ~/.vim/syntax
-    syntax_enabled=$(grep "syntax on" ~/.vimrc)
-    [ -z "$syntax_enabled" ] && echo "syntax on" >> ~/.vimrc
     ft_exists=$(grep "kal" ~/.vimrc)
-    [ -z "$ft_exists" ] && echo -e "\nau BufRead,BufNewFile *.kal set filetype=kal number autoindent noswapfile hlsearch incsearch tabstop=4 shiftwidth=4 expandtab clipboard=unnamedplus" >> ~/.vimrc
+    [ -z "$ft_exists" ] && echo -e "\nsyntax on | au BufRead,BufNewFile *.kal set filetype=kal number autoindent noswapfile hlsearch incsearch tabstop=4 shiftwidth=4 expandtab clipboard=unnamedplus" >> ~/.vimrc
 }
 
 function compile() {
