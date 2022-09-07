@@ -39,9 +39,6 @@ namespace lexer {
         else if(var_type == "num") {
             var_val = "0";
         }
-        else if(var_type == "bool") {
-            var_val = "false";
-        }
 
         var_data = {var_type, var_name, var_val};
         return var_data;
