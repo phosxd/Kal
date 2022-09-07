@@ -61,4 +61,23 @@ namespace lexer {
         return var_name;
     }
 
+    std::vector<std::string> lex_list_declaration(std::vector<std::string>& tokens) {
+        std::vector<std::string> list_name_elements = {};
+        std::string list_code = lib::vector_to_string(tokens, " ", 1);
+        std::vector<std::string> list_data = lib::split(list_code, ':');
+        std::string& list_name = list_data[0];
+        int list_size = list_data[1].size();
+        list_data[1] = list_data[1].substr(3, list_size - 5);
+        list_name_elements.emplace_back(list_name);
+
+        std::vector<std::string> elements = lib::split(list_data[1], ',');
+        int list_len = elements.size();
+        for(int each_element = 0; each_element < list_len; each_element++) {
+            elements[each_element] = lib::trim_leading(lib::trim_trailing(elements[each_element]));
+            list_name_elements.emplace_back(elements[each_element]);
+        }
+
+        return list_name_elements;
+    }
+
 }

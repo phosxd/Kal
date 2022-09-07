@@ -151,6 +151,10 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.var_add(var.get_mem_type(var_data[0]), var.get_type(var_data[0]), var_data[0], second_var_val);
         }
 
+        else if(cmd[0] == "list") {
+            std::vector<std::string> list_data = lexer::lex_list_declaration(cmd);
+        }
+
         else if(cmd[0] == "del" && cmd_size == 2) {
             var.var_delete(lexer::get_var_name_from_token(cmd[1]));
         }
