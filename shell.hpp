@@ -40,21 +40,22 @@ namespace shell {
 
             if(command == ".multi") {
                 std::string multi_prompt = style::bold + style::blue + "> " + style::reset;
-                std::string edit_line;
-                std::vector<std::string> edit_lines;
+                std::string multi_line;
+                std::vector<std::string> multi_lines;
                 std::cout << style::bold << style::blue << "\nIn:" << style::reset << "\n";
                 std::cout << multi_prompt;
-                while(std::getline(std::cin, edit_line) && edit_line != ".eof") {
+                while(std::getline(std::cin, multi_line) && multi_line != ".eof") {
                     std::cout << multi_prompt;
-                    if(edit_line != "") {
-                        edit_lines.emplace_back(edit_line);
+                    if(multi_line != "") {
+                        multi_lines.emplace_back(multi_line);
                         count++;
                     }
                 }
-
-                tokens = lexer::tokenize(edit_lines);
-                std::cout << style::bold << style::blue << "\nOut:" << style::reset << "\n";
-                line_exec(tokens, var, prog_args);
+                if(multi_lines.size() != 0) {
+                    tokens = lexer::tokenize(multi_lines);
+                    std::cout << style::bold << style::blue << "\nOut:" << style::reset << "\n";
+                    line_exec(tokens, var, prog_args);
+                }
                 continue;
             }
 
