@@ -155,6 +155,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             std::vector<std::string> list_data = lexer::lex_list_declaration(cmd);
             std::string& list_name = list_data[0];
             int list_len = list_data.size();
+            var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len));
             for(int each_item = 1; each_item < list_len; each_item++) {
                 std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 1) + "]";
                 var.var_add("var", "str", identifier, list_data[each_item]);
