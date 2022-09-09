@@ -8,6 +8,9 @@
 
 class VarTable {
     private:
+        double current_num;
+        std::string current_string;
+
         std::unordered_map<std::string, double> numbers;
         std::unordered_map<std::string, std::string> strings;
 
@@ -89,6 +92,21 @@ class VarTable {
             }
             else if(var_type == "num") {
                 std::cin >> numbers[var_name];
+            }
+        }
+
+        void eval_var(std::string& var_expr) {
+            var_expr = var_expr.substr(1);
+            std::vector<std::string> var_params = lib::split(var_expr, '#');
+            int var_params_size = var_params.size();
+            if(var_params_size == 1) {
+                std::string var_type = type_check[var_params[0]];
+                if(var_type == "num") {
+                    current_num = std::to_string(var_params[0]);
+                }
+                else if(var_type == "str") {
+                    current_str = var_params[0];
+                }
             }
         }
 };
