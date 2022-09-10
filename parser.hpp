@@ -96,11 +96,6 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
         }
 
-        else if(cmd[0] == "get") {
-            var.eval_var(cmd[1]);
-            parser::std_out(std::to_string(var.get_current_num()));
-        }
-
         else if(cmd[0] == "stderr" && cmd_size == 2) {
             parser::std_err(cmd[1]);
         }
