@@ -3,6 +3,7 @@
 #include "lexer.hpp"
 #include "errors.hpp"
 #include "variable.hpp"
+#include "lib/lib_style.hpp"
 #include "lib/lib_string.hpp"
 
 namespace parser {
@@ -53,6 +54,19 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 }
                 else if(cmd[1] == "on") {
                     warn = true;
+                }
+            }
+        }
+
+        else if(cmd[0] == "style") {
+            for(int style_itr = 1; style_itr < cmd_size; style_itr++) {
+                std::string passed_style = cmd[style_itr];
+                /*if(passed_style[0] == '$') {
+                    passed_style = var.eval_var(passed_style);
+                }*/
+                std::string current_style = style::style[passed_style];
+                if(current_style != "") {
+                    std::cout << style::style[cmd[style_itr]];
                 }
             }
         }
