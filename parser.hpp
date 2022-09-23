@@ -195,6 +195,9 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len));
             for(int each_item = 1; each_item < list_len; each_item++) {
                 std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 1) + "]";
+                if(list_data[each_item][0] == '$') {
+                    list_data[each_item] = var.eval_var(list_data[each_item]);
+                }
                 var.var_add("var", "str", identifier, list_data[each_item]);
             }
             var.add_structure(list_name, "list");
