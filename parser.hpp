@@ -167,6 +167,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         else if(cmd[0][0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
 
+            var_data[0] = var.expand_var(var_data[0]);
             std::string first_var_type = var.get_type(var_data[0]);
             std::string second_var_val = var_data[1];
             if(second_var_val[0] == '$') {

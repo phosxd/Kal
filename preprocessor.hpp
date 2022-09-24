@@ -66,7 +66,7 @@ namespace preproc {
         }
 
         for(uint64_t line_itr = 0; line_itr < line.size(); line_itr++) {
-            if(line[line_itr] == '$' && line[line_itr - 1] != delimiter) {
+            if(line[line_itr] == '$' && line[line_itr - 1] != delimiter && line[line_itr - 1] != '#' && line_itr != 0) {
                 line.insert(line_itr, str_delim);
             }
         }

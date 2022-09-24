@@ -49,7 +49,7 @@ namespace lexer {
 
         std::string complete_line = lib::vector_to_string(tokens, "");
         std::vector<std::string> var_val_split = lib::split(complete_line, '=');
-        std::string var_name = var_val_split[0].substr(1);
+        std::string var_name = var_val_split[0];
         std::string var_val = var_val_split[1];
 
         var_reassignment = { var_name, var_val };
