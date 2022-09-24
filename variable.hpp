@@ -127,6 +127,24 @@ class VarTable {
             return "";
         }
 
+        std::string expand_var(std::string& var_expr) {
+            var_expr = var_expr.substr(1);
+            std::string final_var = var_expr;
+            if(var_expr.find('#') != std::string::npos) {
+                final_var = "[";
+                std::vector<std::string> var_params = lib::split(var_expr, '#');
+                int total_params = var_params.size();
+                for(int param_itr = 0; param_itr < total_params; param_itr++) {
+                    if(var_params[param_itr][0] == '$') {
+                        var_params[param_itr] = eval_var(var_params[param_itr]);
+                    }
+                    final_var += var_params[param_itr] + "#";
+                }
+                final_var[final_var.size() - 1] = ']';
+            }
+            return final_var;
+        }
+
         std::string print_list(std::string list_name) {
             std::string list_result = "[";
             int list_len = get_from_numbers("[" + list_name + "#len]");

@@ -126,7 +126,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             if(var.get_mem_type(var_to_read) == "const") {
                 errors::change_const_var_error(var_to_read);
             }
-            var.read_var(lexer::get_var_name_from_token(cmd[1]));
+            var.read_var(var.expand_var(cmd[1]));
         }
 
         else if(cmd[0] == "var" || cmd[0] == "const") {
