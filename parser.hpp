@@ -170,7 +170,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             std::string& list_type = list_data[0];
             std::string& list_name = list_data[1];
             int list_len = list_data.size();
-            var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len));
+            var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len - 2));
             for(int each_item = 2; each_item < list_len; each_item++) {
                 std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 2) + "]";
                 if(list_data[each_item][0] == '$') {
@@ -179,6 +179,20 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 var.var_add("var", list_type, identifier, list_data[each_item]);
             }
             var.add_structure(list_name, list_type + "_list");
+        }
+
+        else if(cmd[0] == "push") {
+            std::string push_code = lib::vector_to_string(cmd, "", 1);
+            std::vector<std::string> push_data = lib::str_split(push_code, "->");
+            //push_data[0] = var.eval_var(push_data[0]);
+            std::string& push_item = push_data[0];
+            std::string push_list = push_data[1].substr(1);
+            std::string len_var = "[" + push_list + "#len]";
+            int latest_index = var.get_list_size(push_list);
+
+            std::string identifier = "[" + push_list + "#" + std::to_string(latest_index) + "]";
+            var.var_add("var", "str", identifier, push_item);
+            var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
         }
 
         else if(cmd[0][0] == '$') {

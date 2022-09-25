@@ -102,6 +102,10 @@ class VarTable {
             return structures[struct_name];
         }
 
+        int get_list_size(std::string list_name) {
+            return int(get_from_numbers("[" + list_name + "#len]"));
+        }
+
         std::string eval_var(std::string& var_expr) {
             var_expr = var_expr.substr(1);
             std::vector<std::string> var_params = lib::split(var_expr, '#');
@@ -147,10 +151,10 @@ class VarTable {
 
         std::string print_list(std::string list_name) {
             std::string list_result = "[";
-            int list_len = get_from_numbers("[" + list_name + "#len]");
+            int list_len = get_list_size(list_name);
             std::string list_end = ", ";
             for(int each_item = 0; each_item < list_len; each_item++) {
-                if(each_item == list_len - 3) {
+                if(each_item == list_len - 1) {
                     list_end = "";
                 }
                 list_result += (get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + list_end);
