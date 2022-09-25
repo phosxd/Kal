@@ -94,7 +94,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                             std::cout << var.get_from_numbers(var_name);
                         }
                         */
-                        if(var.get_structure_type(cmd[start_val].substr(1)) == "list") {
+                        std::string structure_type = var.get_structure_type(cmd[start_val].substr(1));
+                        if(structure_type == "num_list" || structure_type == "str_list") {
                             std::cout << var.print_list(cmd[start_val].substr(1));
                             continue;
                         }
@@ -164,6 +165,22 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.var_add(cmd[0], var_data[0], var_data[1], var_data[2], true);
         }
 
+        else if(cmd[0] == "list") {
+            std::vector<std::string> list_data = lexer::lex_list_declaration(cmd);
+            std::string& list_type = list_data[0];
+            std::string& list_name = list_data[1];
+            int list_len = list_data.size();
+            var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len));
+            for(int each_item = 2; each_item < list_len; each_item++) {
+                std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 2) + "]";
+                if(list_data[each_item][0] == '$') {
+                    list_data[each_item] = var.eval_var(list_data[each_item]);
+                }
+                var.var_add("var", list_type, identifier, list_data[each_item]);
+            }
+            var.add_structure(list_name, list_type + "_list");
+        }
+
         else if(cmd[0][0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
 
@@ -187,21 +204,6 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
 
             var.var_add(var.get_mem_type(var_data[0]), var.get_type(var_data[0]), var_data[0], second_var_val);
-        }
-
-        else if(cmd[0] == "list") {
-            std::vector<std::string> list_data = lexer::lex_list_declaration(cmd);
-            std::string& list_name = list_data[0];
-            int list_len = list_data.size();
-            var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len));
-            for(int each_item = 1; each_item < list_len; each_item++) {
-                std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 1) + "]";
-                if(list_data[each_item][0] == '$') {
-                    list_data[each_item] = var.eval_var(list_data[each_item]);
-                }
-                var.var_add("var", "str", identifier, list_data[each_item]);
-            }
-            var.add_structure(list_name, "list");
         }
 
         else if(cmd[0] == "del" && cmd_size == 2) {

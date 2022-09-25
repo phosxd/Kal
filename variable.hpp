@@ -150,7 +150,7 @@ class VarTable {
             int list_len = get_from_numbers("[" + list_name + "#len]");
             std::string list_end = ", ";
             for(int each_item = 0; each_item < list_len; each_item++) {
-                if(each_item == list_len - 2) {
+                if(each_item == list_len - 3) {
                     list_end = "";
                 }
                 list_result += (get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + list_end);
