@@ -186,6 +186,17 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             var.add_structure(list_name, list_type + "_list");
         }
 
+        else if(ins == "size") {
+            std::string size_code = lib::vector_to_string(cmd, "", 1);
+            std::vector<std::string> size_data = lib::str_split(size_code, "->");
+            std::string target_var = var.expand_var(size_data[1]);
+            std::string struct_type = var.get_structure_type(size_data[0].substr(1));
+            if(struct_type == "str_list" || struct_type == "num_type") {
+                double struct_size = var.get_from_numbers("[" + size_data[0].substr(1) + "#len]");
+                var.var_add("var", "num", target_var, std::to_string(struct_size));
+            }
+        }
+
         else if(ins == "push") {
             std::string push_code = lib::vector_to_string(cmd, "", 1);
             std::vector<std::string> push_data = lib::str_split(push_code, "->");
