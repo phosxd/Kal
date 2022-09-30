@@ -5,6 +5,7 @@
 #include "variable.hpp"
 #include "lib/lib_style.hpp"
 #include "lib/lib_string.hpp"
+#include "lib/lib_list.hpp"
 
 namespace parser {
     void std_out(std::string out_text) {
@@ -172,71 +173,31 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
 
         else if(ins == "list") {
             std::vector<std::string> list_data = lexer::lex_list_declaration(cmd);
-            std::string& list_type = list_data[0];
-            std::string& list_name = list_data[1];
-            int list_len = list_data.size();
-            var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len - 2));
-            for(int each_item = 2; each_item < list_len; each_item++) {
-                std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 2) + "]";
-                if(list_data[each_item][0] == '$') {
-                    list_data[each_item] = var.eval_var(list_data[each_item]);
-                }
-                var.var_add("var", list_type, identifier, list_data[each_item]);
-            }
-            var.add_structure(list_name, list_type + "_list");
+            lib::create_list(list_data, var);
         }
 
         else if(ins == "size") {
             std::string size_code = lib::vector_to_string(cmd, "", 1);
             std::vector<std::string> size_data = lib::str_split(size_code, "->");
+            std::string& list_name = size_data[0];
             std::string target_var = var.expand_var(size_data[1]);
-            std::string struct_type = var.get_structure_type(size_data[0].substr(1));
-            if(struct_type == "str_list" || struct_type == "num_type") {
-                double struct_size = var.get_from_numbers("[" + size_data[0].substr(1) + "#len]");
-                var.var_add("var", "num", target_var, std::to_string(struct_size));
-            }
+            lib::get_list_size(list_name, target_var, var);
         }
 
         else if(ins == "push") {
             std::string push_code = lib::vector_to_string(cmd, "", 1);
             std::vector<std::string> push_data = lib::str_split(push_code, "->");
-            if(push_data[0][0] == '$') {
-                push_data[0] = var.eval_var(push_data[0]);
-            }
-            std::string& push_item = push_data[0];
-            std::string push_list = push_data[1].substr(1);
-            std::string len_var = "[" + push_list + "#len]";
-            int latest_index = var.get_list_size(push_list);
-
-            std::string identifier = "[" + push_list + "#" + std::to_string(latest_index) + "]";
-            var.var_add("var", "str", identifier, push_item);
-            var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
+            lib::push_to_list(push_data, var);
         }
 
         else if(ins == "join") {
-            std::string formed_string = "";
             std::string list_name = cmd[1].substr(1);
             std::string join_code = lib::vector_to_string(cmd, "", 2);
             std::vector<std::string> join_ins = lib::str_split(join_code, "->");
             std::string& join_text = join_ins[0];
             std::string target_str = join_ins[1].substr(1);
 
-            int list_size = var.get_list_size(list_name);
-            std::string struct_type = var.get_structure_type(list_name).substr(0, 3);
-            for(int item_itr = 0; item_itr < list_size; item_itr++) {
-                if(item_itr == list_size - 1) {
-                    join_text = "";
-                }
-
-                if(struct_type == "str") {
-                    formed_string += (var.get_from_strings("[" + list_name + "#" + std::to_string(item_itr) + "]") + join_text);
-                }
-                else if(struct_type == "num") {
-                    formed_string += (std::to_string(var.get_from_numbers("[" + list_name + "#" + std::to_string(item_itr) + "]")) + join_text);
-                }
-            }
-
-            var.var_add("var", struct_type, target_str, formed_string);
+            lib::join_list(list_name, join_text, target_str, var);
         }
 
         else if(ins[0] == '$') {
@@ -286,7 +247,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             for(int str_itr = 0; str_itr < str_size; str_itr++) {
                 std::string current_value = strings[str_itr];
                 if(current_value[0] == '$') {
-                    std::string var_name = lexer::get_var_name_from_token(current_value);
+                    std::string var_name = var.expand_var(current_value);
                     if(var.get_type(var_name) != "str") {
                         errors::expected_type_error("str");
                     }
@@ -300,7 +261,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 if(literal_first) {
                     errors::cannot_write_to_literal_error(strings[0]);
                 }
-                std::string first_var_name = lexer::get_var_name_from_token(strings[0]);
+                std::string first_var_name = var.expand_var(strings[0]);
                 var.var_add("var", "str", first_var_name, concat_str);
             }
 
@@ -309,7 +270,8 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
                 while(tok[1][var_start] != '$') {
                     var_start++;
                 }
-                std::string destination_string = lexer::get_var_name_from_token(tok[1].substr(var_start, tok[1].size() - (var_start + 2)));
+                std::string dest_string_id = tok[1].substr(var_start, tok[1].size() - (var_start + 2));
+                std::string destination_string = var.expand_var(dest_string_id);
                 var.var_add("var", "str", destination_string, concat_str);
             }
         }
