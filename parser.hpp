@@ -187,17 +187,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         else if(ins == "push") {
             std::string push_code = lib::vector_to_string(cmd, "", 1);
             std::vector<std::string> push_data = lib::str_split(push_code, "->");
-            if(push_data[0][0] == '$') {
-                push_data[0] = var.eval_var(push_data[0]);
-            }
-            std::string& push_item = push_data[0];
-            std::string push_list = push_data[1].substr(1);
-            std::string len_var = "[" + push_list + "#len]";
-            int latest_index = var.get_list_size(push_list);
-
-            std::string identifier = "[" + push_list + "#" + std::to_string(latest_index) + "]";
-            var.var_add("var", "str", identifier, push_item);
-            var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
+            lib::push_to_list(push_data, var);
         }
 
         else if(ins == "join") {

@@ -27,4 +27,18 @@ namespace lib {
             var.var_add("var", "num", target_var, std::to_string(struct_size));
         }
     }
+
+    void push_to_list(std::vector<std::string>& push_data, VarTable& var) {
+        if(push_data[0][0] == '$') {
+            push_data[0] = var.eval_var(push_data[0]);
+        }
+        std::string& push_item = push_data[0];
+        std::string push_list = push_data[1].substr(1);
+        std::string len_var = "[" + push_list + "#len]";
+        int latest_index = var.get_list_size(push_list);
+
+        std::string identifier = "[" + push_list + "#" + std::to_string(latest_index) + "]";
+        var.var_add("var", "str", identifier, push_item);
+        var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
+    }
 }
