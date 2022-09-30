@@ -41,4 +41,24 @@ namespace lib {
         var.var_add("var", "str", identifier, push_item);
         var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
     }
+
+    void join_list(std::string& list_name, std::string& join_text, std::string& target_str, VarTable& var) {
+        std::string formed_string = "";
+        int list_size = var.get_list_size(list_name);
+        std::string struct_type = var.get_structure_type(list_name).substr(0, 3);
+        for(int item_itr = 0; item_itr < list_size; item_itr++) {
+            if(item_itr == list_size - 1) {
+                join_text = "";
+            }
+
+            if(struct_type == "str") {
+                formed_string += (var.get_from_strings("[" + list_name + "#" + std::to_string(item_itr) + "]") + join_text);
+            }
+            else if(struct_type == "num") {
+                formed_string += (std::to_string(var.get_from_numbers("[" + list_name + "#" + std::to_string(item_itr) + "]")) + join_text);
+            }
+        }
+
+        var.var_add("var", struct_type, target_str, formed_string);
+    }
 }
