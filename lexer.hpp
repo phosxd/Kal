@@ -70,11 +70,15 @@ namespace lexer {
         std::string list_name = lib::trim_leading(lib::trim_trailing(rest_list[0]));
         rest_list[1] = lib::trim_leading(lib::trim_trailing(rest_list[1]));
         int list_size = rest_list[1].size();
-        if(rest_list[1] != "[]") {
+        if(rest_list[1] != "[]" && rest_list[1][0] != '$') {
             rest_list[1] = rest_list[1].substr(1, list_size - 2);
         }
         list_name_elements.emplace_back(list_type);
         list_name_elements.emplace_back(list_name);
+        if(rest_list[1][0] == '$') {
+            list_name_elements.emplace_back(rest_list[1]);
+            return list_name_elements;
+        }
 
         if(rest_list[1] != "[]") {
             std::vector<std::string> elements = lib::split(rest_list[1], ',');

@@ -4,10 +4,40 @@
 #include "../variable.hpp"
 
 namespace lib {
+    void copy_list(std::string from_list, std::string to_list, VarTable& var) {
+        int list_size = var.get_list_size(from_list);
+        std::string list_type = var.get_structure_type(from_list);
+        var.add_structure(to_list, list_type);
+        list_type = list_type.substr(0, 3);
+
+        var.var_add("var", "num", "[" + to_list + "#len]", std::to_string(list_size));
+        for(int copy_itr = 0; copy_itr < list_size; copy_itr++) {
+            std::string each_value = "";
+            std::string index = std::to_string(copy_itr);
+            std::string from_identifier = "[" + from_list + "#" + index + "]";
+            std::string to_identifier = "[" + to_list + "#" + index + "]";
+            if(list_type == "str") {
+                each_value = var.get_from_strings(from_identifier);
+            }
+            else if(list_type == "num") {
+                each_value = std::to_string(var.get_from_numbers(from_identifier));
+            }
+
+            var.var_add("var", list_type, to_identifier, each_value);
+        }
+    }
+
     void create_list(std::vector<std::string>& list_data, VarTable& var) {
         std::string& list_type = list_data[0];
         std::string& list_name = list_data[1];
         int list_len = list_data.size();
+
+        if(list_len == 3 && list_data[2][0] == '$') {
+            std::string from_list = list_data[2].substr(1);
+            copy_list(from_list, list_name, var);
+            return;
+        }
+
         var.var_add("var", "num", "[" + list_name + "#len]", std::to_string(list_len - 2));
         for(int each_item = 2; each_item < list_len; each_item++) {
             std::string identifier = "[" + list_name + "#" + std::to_string(each_item - 2) + "]";
