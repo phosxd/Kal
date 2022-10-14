@@ -58,6 +58,17 @@ namespace lib {
         }
     }
 
+    void reassign_list(std::string to_list, std::string from_list, VarTable& var) {
+        int to_list_size = var.get_from_numbers("[" + to_list + "#len]");
+        int from_list_size = var.get_from_numbers("[" + from_list + "#len]");
+        copy_list(from_list, to_list, var);
+        if(from_list_size < to_list_size) {
+            for(int del_start = from_list_size; del_start < to_list_size; del_start++) {
+                var.var_delete("[" + to_list + "#" + std::to_string(del_start) + "]");
+            }
+        }
+    }
+
     void push_to_list(std::vector<std::string>& push_data, VarTable& var) {
         if(push_data[0][0] == '$') {
             push_data[0] = var.eval_var(push_data[0]);

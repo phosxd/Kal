@@ -129,6 +129,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             if(var_data[2][0] == '$') {
                 std::string second_var = lexer::get_var_name_from_token(var_data[2]);
                 std::string second_var_type = var.get_type(second_var);
+
                 if(second_var.find('#') != std::string::npos) {
                     second_var_type = var.get_type("[" + second_var + "]");
                 }
@@ -206,6 +207,11 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
 
         else if(ins[0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
+            std::string struct_type = var.get_structure_type(var_data[0].substr(1));
+            if(struct_type != "") {
+                lib::reassign_list(var_data[0].substr(1), var_data[1].substr(1), var);
+                continue;
+            }
 
             var_data[0] = var.expand_var(var_data[0]);
             std::string first_var_type = var.get_type(var_data[0]);
