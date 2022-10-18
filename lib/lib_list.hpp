@@ -79,7 +79,8 @@ namespace lib {
         int latest_index = var.get_list_size(push_list);
 
         std::string identifier = "[" + push_list + "#" + std::to_string(latest_index) + "]";
-        var.var_add("var", "str", identifier, push_item);
+        std::string list_type = var.get_structure_type(push_list).substr(0, 3);
+        var.var_add("var", list_type, identifier, push_item);
         var.var_add("var", "num", len_var, std::to_string(latest_index + 1));
     }
 
