@@ -64,7 +64,7 @@ namespace lib {
         int size = line.size();
         int white_space_len = 0;
         for(int line_index = 0; line_index < size; line_index++) {
-            if((line[line_index] == ' ') || (line[line_index] == '\t')) {
+            if((line[line_index] == ' ') || (line[line_index] == '\t') || (line[line_index] == '\n')) {
                 white_space_len++;
                 continue;
             }
@@ -81,7 +81,7 @@ namespace lib {
         int size = line.size();
         int white_space_len = 0;
         for(int line_index = size - 1; line_index > 0; line_index--) {
-            if((line[line_index] == ' ') || (line[line_index] == '\t')) {
+            if((line[line_index] == ' ') || (line[line_index] == '\t') || (line[line_index] == '\n')) {
                 white_space_len++;
                 continue;
             }
