@@ -27,7 +27,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         std::string args_identifier = "[args#" + std::to_string(arg_count) + "]";
         var.var_add("var", "str", args_identifier, prog_args[arg_count]);
     }
-    var.add_structure("args", "list");
+    var.add_structure("args", "str_list");
 
     for(int line = 0; line < tokens_list; line++) {
         std::vector<std::string>& cmd = tokens[line];
@@ -79,43 +79,21 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         else if(ins == "stdout") {
             if(cmd_size == 1) {
                 std::cout << "";
+                continue;
             }
-            else {
-                for(int start_val = 1; start_val < cmd_size; start_val++) {
-                    if(cmd[start_val][0] != '$') {
-                        parser::std_out(cmd[start_val]);
+
+            for(int start_val = 1; start_val < cmd_size; start_val++) {
+                if(cmd[start_val][0] != '$') {
+                    parser::std_out(cmd[start_val]);
+                }
+                else {
+                    std::string structure_type = var.get_structure_type(cmd[start_val].substr(1));
+                    if(structure_type == "num_list" || structure_type == "str_list") {
+                        std::cout << var.print_list(cmd[start_val].substr(1));
+                        continue;
                     }
-                    else {
-                        /*
-                        std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
-                        std::string var_type = var.get_type(var_name);
-                        if(var_type == "str") {
-                            parser::std_out(var.get_from_strings(var_name));
-                        }
-                        else if(var_type == "num") {
-                            std::cout << var.get_from_numbers(var_name);
-                        }
-                        */
-                        std::string structure_type = var.get_structure_type(cmd[start_val].substr(1));
-                        if(structure_type == "num_list" || structure_type == "str_list") {
-                            std::cout << var.print_list(cmd[start_val].substr(1));
-                            continue;
-                        }
-                        std::string str_value = var.eval_var(cmd[start_val]);
-                        parser::std_out(str_value);
-                        //std::cout << var.get_current_str() << std::endl;
-                        /*std::string var_name = lexer::get_var_name_from_token(cmd[start_val]);
-                        std::cout << cmd[start_val] << std::endl;
-                        std::cout << var_name << std::endl;
-                        std::string var_type = var.get_type(var_name);
-                        std::cout << var_type << std::endl;
-                        if(var_type == "num") {
-                            parser::std_out(std::to_string(var.get_current_num()));
-                        }
-                        else if(var_type == "str") {
-                            parser::std_out(var.get_current_str());
-                        }*/
-                    }
+                    std::string str_value = var.eval_var(cmd[start_val]);
+                    parser::std_out(str_value);
                 }
             }
         }
@@ -151,6 +129,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             if(var_data[2][0] == '$') {
                 std::string second_var = lexer::get_var_name_from_token(var_data[2]);
                 std::string second_var_type = var.get_type(second_var);
+
                 if(second_var.find('#') != std::string::npos) {
                     second_var_type = var.get_type("[" + second_var + "]");
                 }
@@ -200,8 +179,40 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             lib::join_list(list_name, join_text, target_str, var);
         }
 
+        else if(ins == "unpack") {
+            std::string unpack_code = lib::vector_to_string(cmd, "", 1);
+            std::vector<std::string> unpack_data = lib::str_split(unpack_code, "->");
+            std::string unpack_list = var.expand_var(unpack_data[0]);
+            std::string unpack_list_type = var.get_structure_type(unpack_list).substr(0, 3);
+            std::string clean_var_list = unpack_data[1].substr(1, unpack_data[1].size() - 2);
+            std::vector<std::string> list_vars = lib::split(clean_var_list, ',');
+            lib::unpack_list(unpack_list, unpack_list_type, list_vars, var);
+        }
+
+        else if(ins == "reverse") {
+            std::vector<std::string> rev_data = lexer::lex_reverse_ins(cmd);
+            int ins_param_size = rev_data.size();
+            if(ins_param_size == 1) {
+                lib::reverse_list(rev_data[0], var);
+            }
+            else if(ins_param_size == 2) {
+                lib::copy_list(rev_data[0], rev_data[1], var);
+                lib::reverse_list(rev_data[1], var);
+            }
+        }
+
+        else if(ins == "range") {
+            std::pair<std::vector<double>, std::string> range_data = lexer::lex_range_ins(cmd);
+            lib::range_to_list(range_data.first, range_data.second, var);
+        }
+
         else if(ins[0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
+            std::string struct_type = var.get_structure_type(var_data[0].substr(1));
+            if(struct_type != "") {
+                lib::reassign_list(var_data[0].substr(1), var_data[1].substr(1), var);
+                continue;
+            }
 
             var_data[0] = var.expand_var(var_data[0]);
             std::string first_var_type = var.get_type(var_data[0]);

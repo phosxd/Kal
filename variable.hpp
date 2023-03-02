@@ -1,6 +1,7 @@
 #pragma once
 
 #include "errors.hpp"
+#include "lib/lib_math.hpp"
 
 #include <iostream>
 #include <string>
@@ -113,18 +114,22 @@ class VarTable {
             std::string var_type = type_check[var_params[0]];
             if(var_params_size == 1) {
                 if(var_type == "num") {
-                    return std::to_string(get_from_numbers(var_params[0]));
+                    return lib::display_num(get_from_numbers(var_params[0]));
                 }
                 else if(var_type == "str") {
                     return get_from_strings(var_params[0]);
                 }
             }
             else if(var_params_size == 2) {
+                std::string list_type = get_structure_type(var_params[0]);
                 std::string index = var_params[1];
                 if(var_params[1][0] == '$') {
                     index = std::to_string(int(get_from_numbers(lexer::get_var_name_from_token(var_params[1]))));
                 }
                 std::string identifier = "[" + var_params[0] + "#" + index + "]";
+                if(list_type == "num_list") {
+                    return lib::display_num(get_from_numbers(identifier));
+                }
                 return get_from_strings(identifier);
             }
 
@@ -150,14 +155,21 @@ class VarTable {
         }
 
         std::string print_list(std::string list_name) {
+            std::string list_type = get_structure_type(list_name);
             std::string list_result = "[";
             int list_len = get_list_size(list_name);
             std::string list_end = ", ";
             for(int each_item = 0; each_item < list_len; each_item++) {
+                std::string identifier = "[" + list_name + "#" + std::to_string(each_item) + "]";
                 if(each_item == list_len - 1) {
                     list_end = "";
                 }
-                list_result += (get_from_strings("[" + list_name + "#" + std::to_string(each_item) + "]") + list_end);
+                if(list_type == "str_list") {
+                    list_result += ("\"" + get_from_strings(identifier) + "\"" + list_end);
+                }
+                else if(list_type == "num_list") {
+                    list_result += (lib::display_num(get_from_numbers(identifier)) + list_end);
+                }
             }
             list_result += "]";
             return list_result;

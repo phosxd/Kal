@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <utility>
 
 #include "lib/lib_string.hpp"
 
@@ -68,15 +69,19 @@ namespace lexer {
         std::string& list_type = list_data[0];
         std::vector<std::string> rest_list = lib::split(list_data[1], '=');
         std::string list_name = lib::trim_leading(lib::trim_trailing(rest_list[0]));
+        rest_list[1] = lib::trim_leading(lib::trim_trailing(rest_list[1]));
         int list_size = rest_list[1].size();
-        std::string clean_rest_list = lib::trim_leading(lib::trim_trailing(rest_list[1]));
-        if(clean_rest_list != "[]") {
-            rest_list[1] = rest_list[1].substr(2, list_size - 5);
+        if(rest_list[1] != "[]" && rest_list[1][0] != '$') {
+            rest_list[1] = rest_list[1].substr(1, list_size - 2);
         }
         list_name_elements.emplace_back(list_type);
         list_name_elements.emplace_back(list_name);
+        if(rest_list[1][0] == '$') {
+            list_name_elements.emplace_back(rest_list[1]);
+            return list_name_elements;
+        }
 
-        if(clean_rest_list != "[]") {
+        if(rest_list[1] != "[]") {
             std::vector<std::string> elements = lib::split(rest_list[1], ',');
             int list_len = elements.size();
             for(int each_element = 0; each_element < list_len; each_element++) {
@@ -86,6 +91,32 @@ namespace lexer {
         }
 
         return list_name_elements;
+    }
+
+    std::vector<std::string> lex_reverse_ins(std::vector<std::string>& tokens) {
+        std::string rev_code = lib::vector_to_string(tokens, "", 1);
+        std::vector<std::string> rev_data = lib::str_split(rev_code, "->");
+        for(std::string& each_item : rev_data) {
+            if(each_item[0] == '$') {
+                each_item = each_item.substr(1);
+            }
+        }
+        return rev_data;
+    }
+
+    std::pair<std::vector<double>, std::string> lex_range_ins(std::vector<std::string>& tokens) {
+        std::string range_code = lib::vector_to_string(tokens, "", 1);
+        std::pair<std::vector<double>, std::string> ret_range_data;
+        std::vector<double> range_vals;
+        std::vector<std::string> range_data = lib::str_split(range_code, "->");
+        std::vector<std::string> range_vals_str = lib::str_split(range_data[0], "..");
+        for(std::string& val : range_vals_str) {
+            range_vals.emplace_back(std::stod(val));
+        }
+        ret_range_data.first = range_vals;
+        ret_range_data.second = range_data[1];
+
+        return ret_range_data;
     }
 
 }
