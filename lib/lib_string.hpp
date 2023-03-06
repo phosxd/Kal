@@ -122,6 +122,16 @@ namespace lib {
         return false;
     }
 
+    std::string resolve_string(std::string text) {
+        int text_size = text.size();
+        std::string resolved_string = text;
+        if(text[0] == '"' && text[text_size - 1] == '"') {
+            resolved_string = text.substr(1, text_size - 2);
+        }
+
+        return resolved_string;
+    }
+
     std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"') {
         int len = -1;
         int begin = 0;
@@ -140,14 +150,8 @@ namespace lib {
         }
 
         for(int current_index = 0; current_index < size; current_index++) {
-            if((text[current_index] == escape_char) && ((text[current_index - 1] == delimiter) || !enable_split)) {
+            if((text[current_index] == escape_char) && ((text[current_index - 1] == delimiter) || (text[current_index - 1] == ' ') || !enable_split)) {
                 enable_split = !enable_split;
-                if(enable_split) {
-                    begin++;
-                }
-                else {
-                    len -= 2;
-                }
             }
 
             len++;

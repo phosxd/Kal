@@ -9,11 +9,11 @@
 
 namespace parser {
     void std_out(std::string out_text) {
-        std::cout << lib::render_escape_chars(out_text);
+        std::cout << lib::resolve_string(lib::render_escape_chars(out_text));
     }
 
     void std_err(std::string err_text) {
-        std::cerr << lib::render_escape_chars(err_text);
+        std::cerr << lib::resolve_string(lib::render_escape_chars(err_text));
     }
 }
 
