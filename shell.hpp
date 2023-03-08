@@ -9,7 +9,7 @@
 
 namespace shell {
     void prep_for_shell(std::string& shell_cmd) {
-        shell_cmd = preproc::remove_comments(shell_cmd);
+        preproc::remove_comments(shell_cmd);
         shell_cmd = lib::trim_leading(shell_cmd);
         shell_cmd = lib::trim_trailing(shell_cmd);
         preproc::adjust_strings(shell_cmd);

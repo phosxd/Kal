@@ -21,26 +21,24 @@ namespace preproc {
         }
     }
 
-    std::string remove_comments(const std::string& line) {
-        if(line == "" || line == ";" || line[0] == ';') {
-            return "";
-        }
-
-        bool enable_removal = true;
-        int required_len = 0;
+    void remove_comments(std::string& line) {
+        bool inside_string = false;
+        bool enable_removal = false;
         int line_size = line.size();
-        for(int char_index = 0; char_index < line_size; char_index++) {
+        int char_index = 0;
+        while(char_index < line_size) {
             if(line[char_index] == '"') {
+                inside_string = !inside_string;
+            }
+            if(line[char_index] == ';' && !inside_string) {
+                line[char_index] = ' ';
                 enable_removal = !enable_removal;
             }
-            if((line[char_index] == ';') && enable_removal) {
-                break;
+            if(enable_removal) {
+                line[char_index] = ' ';
             }
-            required_len++;
+            char_index++;
         }
-        
-        std::string useful_string = line.substr(0, required_len);
-        return useful_string;
     }
 
     void adjust_strings(std::string& line, char delimiter = ' ') {
@@ -77,7 +75,6 @@ namespace preproc {
         int line_contents_size = line_contents.size();
 
         for(int line_itr = 0; line_itr < line_contents_size; line_itr++) {
-            line_contents[line_itr] = remove_comments(line_contents[line_itr]);
             line_contents[line_itr] = lib::trim_leading(line_contents[line_itr]);
             line_contents[line_itr] = lib::trim_trailing(line_contents[line_itr]);
 
@@ -91,6 +88,7 @@ namespace preproc {
 
     std::vector<std::string> initial_preprocessing(std::string initial_file_path) {
         std::string initial_file_contents = lib::read_file(initial_file_path, true);
+        remove_comments(initial_file_contents);
         adjust_strings(initial_file_contents);
         std::vector<std::string> initial_file_lines = lib::split(initial_file_contents, '.', '"');
         std::vector<std::string> initial_cleaned_file_lines = clean_contents(initial_file_lines);
