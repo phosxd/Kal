@@ -80,7 +80,6 @@ namespace preproc {
             line_contents[line_itr] = remove_comments(line_contents[line_itr]);
             line_contents[line_itr] = lib::trim_leading(line_contents[line_itr]);
             line_contents[line_itr] = lib::trim_trailing(line_contents[line_itr]);
-            adjust_strings(line_contents[line_itr]);
 
             if(line_contents[line_itr] != "") {
                 cleaned_contents.emplace_back(line_contents[line_itr]);
@@ -92,6 +91,7 @@ namespace preproc {
 
     std::vector<std::string> initial_preprocessing(std::string initial_file_path) {
         std::string initial_file_contents = lib::read_file(initial_file_path, true);
+        adjust_strings(initial_file_contents);
         std::vector<std::string> initial_file_lines = lib::split(initial_file_contents, '.', '"');
         std::vector<std::string> initial_cleaned_file_lines = clean_contents(initial_file_lines);
         return initial_cleaned_file_lines;
