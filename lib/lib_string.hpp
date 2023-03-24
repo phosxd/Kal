@@ -194,7 +194,7 @@ namespace lib {
                 while(text[index] != '\n') {
                     index++;
                 }
-                begin = index + 1;
+                begin = ++index;
             }
 
             if(!inside_string && text[index] == secondary_id) {
@@ -203,7 +203,7 @@ namespace lib {
                 }
                 required_line = text.substr(begin, index - begin);
                 lines.emplace_back(required_line);
-                begin = index + 1;
+                begin = ++index;
                 continue;
 
             }
