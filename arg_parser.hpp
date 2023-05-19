@@ -11,15 +11,42 @@ class ArgParser {
         std::unordered_map<std::string, std::string> flags_map;
 
     public:
+        //int skip = 0;
         ArgParser(const int& size, char** args) {
-            for(int item_itr = 0; item_itr < size; item_itr++) {
+            int index = 0;
+            while(index < size) {
+                if(args[index][0] == '-') {
+                    int next_item = index + 1;
+                    if(next_item == size) {
+                        break;
+                    }
+                    flags_map[args[index]] = args[next_item];
+                    index++;
+                }
+                else {
+                    prog_args.emplace_back(args[index]);
+                }
+                index++;
+            }
+
+            std::unordered_map<std::string, std::string>::iterator it;
+            for(it = flags_map.begin(); it != flags_map.end(); it++) {
+                std::cout << it->first << ": " << it->second << std::endl;
+            }
+            for(std::string x : prog_args) {
+                std::cout << x << std::endl;
+            }
+            std::cout << "--------\n";
+            /*for(int item_itr = 0; item_itr < size; item_itr++) {
                if(args[item_itr][0] == '-') {
                    int next_item = item_itr + 1;
                    if(next_item == size) {
                         break;
                    }
                    flags_map[args[item_itr]] = args[next_item];
+                   //skip = next_item + 1;
                }
+               //std::cout << args[skip] << std::endl;
             }
             
             int arg_start_point = 0;
@@ -42,7 +69,7 @@ class ArgParser {
 
             for(int start = arg_start_point; start < size; start++) {
                 prog_args.emplace_back(std::string(args[start]));
-            }
+            }*/
 
         }
 

@@ -5,15 +5,22 @@
 #include "lib/lib_string.hpp"
 
 namespace preproc {
-    void squash_vector(std::vector<std::string>& orignal, const std::vector<std::string>& other, int index) {
+    void squash_vector(std::vector<std::string>& orignal, const std::vector<std::string>& other, int index, bool replace = true) {
         int orignal_size = orignal.size();
         for(int orignal_count = 0; orignal_count < orignal_size; orignal_count++) {
             if(orignal_count == index) {
                 std::vector<std::string>::iterator orignal_itr = orignal.begin();
-                orignal[orignal_count] = other[0];
+                if(replace) {
+                    orignal[orignal_count] = other[0];
+                }
+
+                int start = 0;
+                if(replace) {
+                    start = 1;
+                }
 
                 int other_size = other.size();
-                for(int other_count = 1; other_count < other_size; other_count++) {
+                for(int other_count = start; other_count < other_size; other_count++) {
                     orignal.insert(orignal_itr + orignal_count + other_count, other[other_count]);
                     orignal_itr = orignal.begin();
                 }
@@ -121,8 +128,35 @@ namespace preproc {
         }
     }
 
-    void preprocess(std::vector<std::string>& processed_contents, std::string& current_file_path) {
+    void expand_deps(std::vector<std::string>& expanded_contents, std::string deps_str) {
+        std::vector<std::string> deps;
+        int index = 0;
+        int begin = 0;
+        int size = deps_str.size();
+        std::string required_dep = "";
+        while(index < size) {
+            if(deps_str[index] == ',') {
+                required_dep = deps_str.substr(begin, index);
+                deps.emplace_back(required_dep);
+                begin = index + 1;
+            }
+            index++;
+        }
+        //std::string file_path = lib::get_dir(current_file_path) + file_path;
+        for(std::string x : deps) {
+            std::cout << "[" << x << "]" << std::endl;
+        }
+        std::vector<std::string> sloc = initial_preprocessing(deps[0]);
+        squash_vector(expanded_contents, sloc, 0, false);
+
+    }
+
+    void preprocess(std::vector<std::string>& processed_contents, std::string& current_file_path/*, bool deps, std::string deps_str*/) {
         std::vector<std::string> included_file_list;
+        /*if(deps) {
+            expand_deps(processed_contents, deps_str, current_file_path)
+        }*/
+        std::cout << "preproc\n";
         for(uint64_t line_count = 0; line_count < processed_contents.size(); line_count++) {
             expand_files(processed_contents, included_file_list, current_file_path);
         }
