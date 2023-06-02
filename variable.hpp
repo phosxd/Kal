@@ -142,6 +142,10 @@ class VarTable {
 
         std::string eval_var(std::string& var_expr) {
             std::string val = data[var_expr.substr(1)];
+            if(val == "") {
+                std::cout << val << "does not exist" << std::endl;
+                exit(1);
+            }
             if(val[0] == '"') {
                 val = val.substr(1, val.size() - 2);
             }

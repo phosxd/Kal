@@ -214,6 +214,14 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
         }
 
         else if(ins[0] == '$') {
+            std::string var_value = cmd[1];
+            if(var_value[0] == '$') {
+                var_value = var.eval_var(var_value);
+            }
+            var.var_add("var", cmd[0].substr(1), var_value);
+
+        }
+        /*else if(ins[0] == '$') {
             std::vector<std::string> var_data = lexer::lex_variable_reassignment(cmd);
             std::string struct_type = var.get_structure_type(var_data[0].substr(1));
             if(struct_type != "") {
@@ -241,7 +249,7 @@ void line_exec(std::vector<std::vector<std::string>>& tokens, VarTable& var, con
             }
 
             var.var_add(var.get_mem_type(var_data[0]), var_data[0], second_var_val);
-        }
+        }*/
 
         else if(ins == "del" && cmd_size == 2) {
             var.var_delete(lexer::get_var_name_from_token(cmd[1]));

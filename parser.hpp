@@ -196,17 +196,44 @@ namespace parser {
                 index++;
                 continue;
             }
-
             if(index == 0) {
-                begin = index;
-                while(!WHITESPACE(index)) {
-                    index++;
-                }
-                end = index;
-                required_token = text.substr(begin, end - begin);
-                tokens.emplace_back(required_token);
-            }
+                if(text[index] == '$') {
+                    int begin = index;
+                    int assignment = index;
+                    while(text[index] != '=') {
+                        index++;
+                    }
+                    int end = index;
+                    while(WHITESPACE(end - 1)) {
+                        end--;
+                    }
+                    required_token = text.substr(begin, end - begin);
+                    tokens.emplace_back(required_token);
+                    if(text[index] == '=') {
+                        index++;
+                        assignment = index;
+                        while(WHITESPACE(assignment)) {
+                            assignment++;
+                        }
+                        index = assignment;
+                        while(text[index] != '\0') {
+                            index++;
+                        }
 
+                        required_token = text.substr(assignment, index - assignment);
+                        tokens.emplace_back(required_token);
+                    }
+                }
+                else {
+                    begin = index;
+                    while(!WHITESPACE(index)) {
+                        index++;
+                    }
+                    end = index;
+                    required_token = text.substr(begin, end - begin);
+                    tokens.emplace_back(required_token);
+                }
+            }
 
             if(text[index] == '=') {
                 end = index;
@@ -220,6 +247,7 @@ namespace parser {
                 required_token = text.substr(begin, end - begin + 1);
                 tokens.emplace_back(required_token);
                 index += (end - begin - 1);
+                index++;
                 //std::cout << "later: " << index << std::endl;
 
                 /*begin = index;
@@ -267,13 +295,14 @@ namespace parser {
                 //index++;
             }
 
+
             if(is_num(text[index])) {
                 begin = index;
                 while(is_num(text[index])) {
                     index++;
                 }
                 end = index;
-                required_token = text.substr(begin - 1, end - begin + 1);
+                required_token = text.substr(begin, end - begin + 1);
                 tokens.emplace_back(required_token);
             }
 
