@@ -320,7 +320,7 @@ namespace parser {
             }
 
             if(text[index] == '=' && config->init_list) {
-                std::cout << config->id << std::endl;
+                //std::cout << config->id << std::endl;
                 end = index;
                 while(!is_alpha(text[end])) {
                     end--;
