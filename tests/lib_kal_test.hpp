@@ -4,7 +4,7 @@ int current = 1;
 int total = 0;
 
 void component(std::string kal_component) {
-    std::cout << style::style["green"] << style::style["bold"] 
+    std::cout << style::style["blue"] << style::style["bold"]
         << "\n[*] " << style::style["reset"] << style::style["bold"]
         << "Testing the Kal " << kal_component << "..." << std::endl;
 }
@@ -17,7 +17,8 @@ void title(std::string function) {
         << function << style::style["reset"] << style::style["bold"] << "... ";
 }
 
-void check(std::string found, std::string actual, std::string error = "") {
+template <typename Type = std::string>
+void check(Type found, Type actual, std::string error = "") {
     if(found != actual) {
         std::cerr << style::style["reset"] << style::style["red"]
             << "\nGenerated Value `" << found << "`" << " != " << "Actual Value `" << actual << "`.\n";
