@@ -82,11 +82,6 @@ class ArgParser {
             return total_args;
         }
 
-        std::string get_arg(int position) {
-            std::string arg = prog_args[position];
-            return arg;
-        }
-
         std::string get_value(std::string flag) {
             std::string value = flags_map[flag];
             return value;
