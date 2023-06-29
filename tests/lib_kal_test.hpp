@@ -5,7 +5,7 @@ int total = 0;
 
 void component(std::string kal_component) {
     std::cout << style::style["blue"] << style::style["bold"]
-        << "\n[*] " << style::style["reset"] << style::style["bold"]
+        << "\n[*] " << style::style["bold"]
         << "Testing the Kal " << kal_component << "..." << std::endl;
 }
 
