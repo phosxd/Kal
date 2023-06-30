@@ -8,7 +8,6 @@
 #include <unordered_map>
 
 #include "config.hpp"
-#include "expr_parser.hpp"
 
 #define WHITESPACE(position) (text[position] == ' ' || text[position] == '\t' || text[position] == '\n')
 
@@ -86,7 +85,7 @@ namespace parser {
         }
         int end = index - 1;
         std::string expr = text.substr(begin, end - begin + 1);
-        return std::to_string(eval(expr));
+        return expr;
     }
 
     std::string parse_variable(const std::string& text, int& index) {

@@ -4,7 +4,13 @@
 #include <stack>
 #include <iostream>
 
+#include "parser.hpp"
+
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
+
+bool is_string(const std::string& text) {
+    return text[0] == '"' && text[text.size() - 1] == '"';
+}
 
 namespace ops {
     const std::string negative = "n",
@@ -91,6 +97,13 @@ double eval(std::string expr) {
             index++;
             continue;
         }
+        else if(expr[index] == '"') {
+            std::string value = parser::parse_string(expr, index);
+            rpn << value << ' ';
+            //std::cout << index << std::endl;
+            index++;
+            continue;
+        }
         else if((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
             int begin = index;
             while((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
@@ -145,20 +158,23 @@ double eval(std::string expr) {
         index++;
     }
 
+
     while(!operators.empty()) {
         rpn << operators.top() << ' ';
         operators.pop();
     }
+    // std::cout << rpn.str() << std::endl;
 
+    std::string a, b;
     double x, y;
     std::string token;
-    std::stack<double> numbers;
+    std::stack<std::string> numbers;
     while(rpn >> token) {
         if(!order(token)) {
-            numbers.push(std::stod(token));
+            numbers.push(token);
         }
         else if(order(token) == 12) {
-            y = numbers.top();
+            y = std::stod(numbers.top());
             numbers.pop();
             if(token == "n") {
                 y = -y;
@@ -169,34 +185,46 @@ double eval(std::string expr) {
             else if(token == "~") {
                 y = ~long(y);
             }
-            numbers.push(y);
+            numbers.push(std::to_string(y));
         }
         else {
-            y = numbers.top();
+            b = numbers.top();
             numbers.pop();
-            x = numbers.top();
+            a = numbers.top();
             numbers.pop();
-            if     (token == "+")   numbers.push(x + y);
-            else if(token == "-")   numbers.push(x - y);
-            else if(token == "*")   numbers.push(x * y);
-            else if(token == "/")   numbers.push(x / y);
-            else if(token == "%")   numbers.push(mod(x, y));
-            else if(token == "<<")  numbers.push(long(x) << long(y));
-            else if(token == ">>")  numbers.push(long(x) >> long(y));
-            else if(token == "<")   numbers.push(x < y);
-            else if(token == ">")   numbers.push(x > y);
-            else if(token == "<=")  numbers.push(x <= y);
-            else if(token == ">=")  numbers.push(x >= y);
-            else if(token == "==")  numbers.push(x == y);
-            else if(token == "!=")  numbers.push(x != y);
-            else if(token == "&")   numbers.push(long(x) & long(y));
-            else if(token == "^")   numbers.push(long(x) ^ long(y));
-            else if(token == "|")   numbers.push(long(x) | long(y));
-            else if(token == "&&")  numbers.push(x && y);
-            else if(token == "||")  numbers.push(x || y);
+            if(is_string(a) && is_string(a)) {
+                if(token == "==") {
+                    numbers.push(std::to_string(a == b));
+                }
+                else if(token == "!=") {
+                    numbers.push(std::to_string(a != b));
+                }
+                continue;
+            }
+            x = std::stod(a);
+            y = std::stod(b);
+
+            if     (token == "+")   numbers.push(std::to_string(x + y));
+            else if(token == "-")   numbers.push(std::to_string(x - y));
+            else if(token == "*")   numbers.push(std::to_string(x * y));
+            else if(token == "/")   numbers.push(std::to_string(x / y));
+            else if(token == "%")   numbers.push(std::to_string(mod(x, y)));
+            else if(token == "<<")  numbers.push(std::to_string(long(x) << long(y)));
+            else if(token == ">>")  numbers.push(std::to_string(long(x) >> long(y)));
+            else if(token == "<")   numbers.push(std::to_string(x < y));
+            else if(token == ">")   numbers.push(std::to_string(x > y));
+            else if(token == "<=")  numbers.push(std::to_string(x <= y));
+            else if(token == ">=")  numbers.push(std::to_string(x >= y));
+            else if(token == "==")  numbers.push(std::to_string(x == y));
+            else if(token == "!=")  numbers.push(std::to_string(x != y));
+            else if(token == "&")   numbers.push(std::to_string(long(x) & long(y)));
+            else if(token == "^")   numbers.push(std::to_string(long(x) ^ long(y)));
+            else if(token == "|")   numbers.push(std::to_string(long(x) | long(y)));
+            else if(token == "&&")  numbers.push(std::to_string(x && y));
+            else if(token == "||")  numbers.push(std::to_string(x || y));
         }
     }
-    result = numbers.top();
+    result = std::stod(numbers.top());
     numbers.pop();
     return result;
 }
