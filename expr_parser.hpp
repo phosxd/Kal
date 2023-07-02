@@ -1,7 +1,8 @@
 #pragma once
 
-#include <sstream>
+//#include <sstream>
 #include <stack>
+#include <queue>
 #include <iostream>
 
 #include "parser.hpp"
@@ -98,7 +99,8 @@ double mod(double x, double y) {
 
 std::string eval(std::string expr) {
     std::string result;
-    std::stringstream rpn;
+    //std::stringstream rpn;
+    std::queue<std::string> rpn;
     std::string current_op = "";
     std::stack<std::string> operators;
 
@@ -124,7 +126,8 @@ std::string eval(std::string expr) {
             std::string value = parser::parse_string(expr, index);
             //std::cout << "after: " << index << std::endl;
             //std::cout << "parsed value: [" << value << "]" << std::endl;
-            rpn << value << ' ';
+            //rpn << value << ' ';
+            rpn.push(value);
             //std::cout << index << std::endl;
             index++;
             continue;
@@ -135,7 +138,8 @@ std::string eval(std::string expr) {
                 index++;
             }
             std::string value = expr.substr(begin, index - begin);
-            rpn << value << ' ';
+            //rpn << value << ' ';
+            rpn.push(value);
             index--;
         }
         else if(match(expr, ops::left, index)) {
@@ -143,7 +147,8 @@ std::string eval(std::string expr) {
         }
         else if(match(expr, ops::right, index)) {
             while(!operators.empty() && operators.top() != ops::left) {
-                rpn << operators.top() << ' ';
+                //rpn << operators.top() << ' ';
+                rpn.push(operators.top());
                 operators.pop();
             }
             operators.pop();
@@ -174,7 +179,8 @@ std::string eval(std::string expr) {
             SET_CURRENT_OP(ops::negative);
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
-                rpn << operators.top() << ' ';
+                //rpn << operators.top() << ' ';
+                rpn.push(operators.top());
                 operators.pop();
             }
             operators.push(current_op);
@@ -185,7 +191,8 @@ std::string eval(std::string expr) {
 
 
     while(!operators.empty()) {
-        rpn << operators.top() << ' ';
+        //rpn << operators.top() << ' ';
+        rpn.push(operators.top());
         operators.pop();
     }
     // std::cout << rpn.str() << std::endl;
@@ -194,7 +201,10 @@ std::string eval(std::string expr) {
     double x, y;
     std::string token;
     std::stack<std::string> numbers;
-    while(rpn >> token) {
+    //while(rpn >> token) {
+    while(!rpn.empty()) {
+        token = rpn.front();
+        rpn.pop();
         if(!order(token)) {
             numbers.push(token);
         }
