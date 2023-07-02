@@ -198,7 +198,7 @@ std::string eval(std::string expr) {
     // std::cout << rpn.str() << std::endl;
 
     std::string a, b;
-    double x, y;
+    double x = 0, y = 0;
     std::string token;
     std::stack<std::string> numbers;
     //while(rpn >> token) {
