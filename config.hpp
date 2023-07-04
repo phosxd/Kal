@@ -19,18 +19,23 @@ struct Config {
 
 
 Config group_0 = {
+    .id = "group_0",
     .head = false,
     .init_list = true,
 };
 
-Config group_1;
+Config group_1 = {
+    .id = "group_1",
+};
 
 Config group_2 = {
+    .id = "group_2",
     .optional_arg = false,
     .single_arg = true,
 };
 
 Config group_3 = {
+    .id = "group_3",
     .multiple_args = true,
 };
 
@@ -40,6 +45,7 @@ Config group_4 = {
 };
 
 Config group_5 = {
+    .id = "group_5",
     .multiple_args = true,
     .target = true,
 };
