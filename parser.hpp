@@ -219,7 +219,7 @@ namespace parser {
         return required_token;
     }
 
-    std::vector<std::string> parse_init(const std::string& text, int& index/*, std::vector<std::string>& tokens*/) {
+    std::vector<std::string> parse_init(const std::string& text, int& index) {
         int begin = index;
         int end = index;
         int text_size = text.size();
@@ -273,10 +273,8 @@ namespace parser {
                 begin = index;
                 continue;
             }
-            else {
-                if(match(index, text, target_operator, false)) {
-                    END;
-                }
+            else if(match(index, text, target_operator, false)) {
+                END;
             }
             index++;
         }
@@ -297,7 +295,6 @@ namespace parser {
             values.emplace_back(required_token);
             index++;
         }
-        //std::cout << "index: " << index << std::endl;
         return values;
     }
 
@@ -316,11 +313,9 @@ namespace parser {
                 continue;
             }
             if(index == 0) {
-                /////
                 if(!config->head) {
                     END;
                 }
-                /////
                 begin = index;
                 while(!WHITESPACE(index) && index != text_size) {
                     index++;
@@ -331,36 +326,27 @@ namespace parser {
             }
 
             if(token.head == "var" || token.head == "const" || token.head == "static") {
-                /////
                 if(!config->init_list) {
                     END;
                 }
-                /////
                 index++;
                 while(WHITESPACE(index)) {
                     index++;
                 }
                 token.init = parse_init(text, index);
-                //index--;
                 continue;
             }
             else {
-                /////
-                if(!config->multiple_args) {
+                token.values = parse_values(text, index);
+                if(config->single_arg && token.values.size() > 1) {
                     END;
                 }
-                /////
-                token.values = parse_values(text, index);
             }
 
-            // perform check inside. (if not config->target: throw error)
             if(match(index, text, target_operator)) {
-                /////
-                std::cout << config->target << std::endl;
                 if(!config->target) {
                     END;
                 }
-                /////
                 begin = index;
                 while(text[index] != '\0') {
                     if(WHITESPACE(index)) {
