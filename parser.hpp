@@ -94,16 +94,22 @@ namespace parser {
         int text_size = text.size();
         if(text[index] == '$') {
             index++;
+            if(text[index] == '&') {
+                index++;
+            }
         }
         if(text[index] >= '0' && text[index] <= '9') {
             END;
         }
         while(text_pos < text_size) {
-            if(text[index] == '.') {
-                END;
-            }
             if(is_alpha(text[index]) || text[index] == '_' || (text[index] >= '0' && text[index] <= '9')) {
                 index++;
+            }
+            else {
+                if(text[index] == '\0') {
+                    break;
+                }
+                END;
             }
             text_pos++;
         }
