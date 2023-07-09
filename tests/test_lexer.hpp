@@ -17,7 +17,7 @@ void test_lexer() {
     actual = {
         {
             .head = "var",
-            .init = { "name", "\"Kal-El\"" }
+            .init = { "name", "\"Kal-El\""}
         },
         {
             .head = "stdout",

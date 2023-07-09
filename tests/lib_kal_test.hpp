@@ -33,13 +33,23 @@ void check(Type found, Type actual, std::string error = "") {
 
 void check_vector(const std::vector<std::string>& found, const std::vector<std::string>& actual, std::string name = "") {
     uint64_t vector_size = found.size();
-    name = " " + name;
+    uint64_t actual_size = actual.size();
+
+    if(name != "") {
+        name = " " + name;
+    }
+
+    if(vector_size != actual_size) {
+        std::cerr << style::style["reset"] << style::style["yellow"]
+            << "\nGenerated" << name << " Size `" << vector_size << "` != Actual" << name << " Size `" << actual_size << "`.\n";
+        std::cerr << style::style["bold"] << "WARN." << style::style["reset"] << "\n";
+    }
 
     for(uint64_t i = 0; i < vector_size; i++) {
         if(found[i] != actual[i]) {
             std::cerr << style::style["reset"] << style::style["red"]
                 << "\nGenerated" << name << " Value `" << found[i] << "` != Actual" << name << " Value `" << actual[i] << "`.\n"; 
-            
+
             std::cerr << style::style["bold"] << "FAIL." << style::style["reset"] << "\n";
             exit(1);
         }
@@ -57,7 +67,7 @@ void check_token(const Token& found, const Token& actual) {
 
     check_vector(found.init, actual.init, "Init");
 
-    check_vector(found.values, found.values);
+    check_vector(found.values, actual.values);
 
     if(found.target != actual.target) {
         fail = true;
