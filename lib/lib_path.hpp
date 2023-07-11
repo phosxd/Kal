@@ -49,9 +49,12 @@ namespace lib {
         return absoulte_path;
     }*/
 
-    std::string get_path(std::string given_path) {
+    std::string get_path(std::string given_path, std::string current = "") {
         std::deque<std::string> abs;
-        std::string current = std::filesystem::current_path();
+        //std::string current = "";
+        if(current == "") {
+            current = std::filesystem::current_path();
+        }
         //std::cout << given_path << std::endl;
         std::stringstream home(current);
         //std::cout << std::filesystem::current_path() << std::endl;

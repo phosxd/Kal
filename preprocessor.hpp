@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdlib>
+#include <vector>
+#include <stack>
 
 #include "errors.hpp"
 #include "lib/lib_path.hpp"
@@ -80,118 +82,75 @@ namespace preproc {
         }
     }
 
-    std::vector<std::string> clean_contents(std::vector<std::string>& line_contents) {
-        std::vector<std::string> cleaned_contents;
-        int line_contents_size = line_contents.size();
 
-        for(int line_itr = 0; line_itr < line_contents_size; line_itr++) {
-            line_contents[line_itr] = lib::trim_leading(line_contents[line_itr]);
-            line_contents[line_itr] = lib::trim_trailing(line_contents[line_itr]);
+    std::stack<std::string> dirs;
+    std::vector<std::string> preprocess(std::string file_path) {
+        std::vector<std::string> all_lines;
+        std::string top = "";
+        if(!dirs.empty()) {
+            top = dirs.top();
+        }
+        std::string abs_file_path = lib::get_path(file_path, top);
+        std::string current_path = lib::get_dir(abs_file_path);
 
-            if(line_contents[line_itr] != "") {
-                cleaned_contents.emplace_back(line_contents[line_itr]);
+        std::string file_contents = lib::read_file(abs_file_path);
+        remove_comments(file_contents);
+
+        std::vector<std::string> file_lines = lib::new_split(file_contents);
+        for(std::string& line : file_lines) {
+            line = lib::trim_leading(lib::trim_trailing(line));
+            if(line != "") {
+                all_lines.emplace_back(line);
             }
+
+            if(line[0] == '@') {
+                std::string include_path = line.substr(1);
+                int include_path_size = include_path.size();
+                if(include_path_size < 4 || include_path.substr(include_path_size - 4) != ".kal") {
+                    include_path += ".kal";
+                }
+                dirs.push(current_path);
+                abs_file_path = include_path;
+                std::vector<std::string> vals = preprocess(abs_file_path);
+                squash_vector(all_lines, vals, all_lines.size() - 1);
+                current_path = dirs.top();
+                dirs.pop();
+            }
+
         }
 
-        return cleaned_contents;
+        return all_lines;
     }
 
-    std::vector<std::string> initial_preprocessing(std::string initial_file_path) {
-        std::string initial_file_contents = lib::read_file(initial_file_path, true);
-        remove_comments(initial_file_contents);
-        adjust_strings(initial_file_contents);
-        std::vector<std::string> initial_file_lines = lib::new_split(initial_file_contents);
-        std::vector<std::string> initial_cleaned_file_lines = clean_contents(initial_file_lines);
-        return initial_cleaned_file_lines;
-    }
 
-    void expand_files(std::vector<std::string>& expanded_contents, std::vector<std::string>& included_file_list, std::string& current_file_path) {
-        char buf[4096];
-        int clean_contents_size = expanded_contents.size();
-        for(int content_itr = 0; content_itr < clean_contents_size; content_itr++) {
-            if(expanded_contents[content_itr][0] == '@') {
-                std::string include_file_path = expanded_contents[content_itr].substr(1);
-                int include_file_path_size = include_file_path.size();
-                if(include_file_path_size < 4 || include_file_path.substr(include_file_path_size - 4) != ".kal") {
-                    include_file_path += ".kal";
-                }
-                include_file_path = /*include_file_path + '/' +*/ lib::get_dir(current_file_path) + include_file_path;
-                const char* x = realpath(include_file_path.c_str(), buf);
-                //std::cout << x << std::endl;
-                include_file_path = x;
-                std::cout << include_file_path << std::endl;
-                if(lib::exists_in_vector(included_file_list, include_file_path)) {
-                    errors::file_already_included_error(include_file_path);
-                }
-                if(include_file_path == current_file_path) {
-                    errors::file_included_in_itself_error(include_file_path);
-                }
-                current_file_path = include_file_path;
-                included_file_list.emplace_back(include_file_path);
-
-                std::vector<std::string> included_cleaned_source_lines = initial_preprocessing(include_file_path);
-                squash_vector(expanded_contents, included_cleaned_source_lines, content_itr);
-                memset(buf, '\0', sizeof(buf));
-            }
-        }
-    }
-
-    void expand_deps(std::vector<std::string>& expanded_contents, std::string deps_str) {
+    /*void expand_deps(std::vector<std::string>& expanded_contents, std::string deps_str) {
         std::vector<std::string> deps;
         int size = deps_str.size();
         int index = size;
         int begin = size;
 
         std::string required_dep = "";
-        /*if(deps_str[size - 1] != ',') {
-            deps_str += ',';
-            size++;
-        }*/
         if(deps_str[0] != ',') {
             deps_str = ',' + deps_str;
             size++;
         }
 
         while(index >= 0) {
-            //std::cout << index << ": " << deps_str[index] << std::endl;
             if(deps_str[index] == ',') {
                 required_dep = deps_str.substr(index + 1, begin - index + 1);
                 if(required_dep != "") {
                     required_dep = lib::trim_leading(lib::trim_trailing(required_dep));
                     deps.emplace_back(required_dep);
                 }
-                //std::cout << "[" << required_dep << "]" << std::endl;
                 begin = index - 2;
             }
             index--;
         }
-        //std::cout << deps_str << std::endl;
-        /*while(index < size) {
-            if(deps_str[index] == ',') {
-                //std::cout << begin << " " << index << std::endl;
-                required_dep = deps_str.substr(begin, index - begin);
-                deps.emplace_back(required_dep);
-                //std::cout << "[" << required_dep << "]" << std::endl;
-                begin = index + 1;
-            }
-            index++;
-        }*/
-        //return;
-        //std::string file_path = lib::get_dir(current_file_path) + file_path;
         for(std::string dep : deps) {
-            std::vector<std::string> sloc = initial_preprocessing(dep);
-            squash_vector(expanded_contents, sloc, 0, false);
+            //std::vector<std::string> sloc = initial_preprocessing(dep);
+            //squash_vector(expanded_contents, sloc, 0, false);
         }
 
-    }
+    }*/
 
-    void preprocess(std::vector<std::string>& processed_contents, std::string& current_file_path/*, bool deps, std::string deps_str*/) {
-        std::vector<std::string> included_file_list;
-        /*if(deps) {
-            expand_deps(processed_contents, deps_str, current_file_path)
-        }*/
-        for(uint64_t line_count = 0; line_count < processed_contents.size(); line_count++) {
-            expand_files(processed_contents, included_file_list, current_file_path);
-        }
-    }
 }

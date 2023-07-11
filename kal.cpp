@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> source_lines;
     if(arg_parser.flag_exists("-p")) {
         file_name = arg_parser.get_value("-p");
-        source_lines = preproc::initial_preprocessing(file_name);
+        source_lines = preproc::preprocess(file_name);
 
         if(arg_parser.flag_exists("-o")) {
             std::string write_path = arg_parser.get_value("-o");
@@ -44,16 +44,16 @@ int main(int argc, char** argv) {
         }
         return 0;
     }
-    file_name = lib::get_path(args[1]);
+    file_name = args[1];
 
-    source_lines = preproc::initial_preprocessing(file_name);
+    source_lines = preproc::preprocess(file_name);
 
-    if(arg_parser.flag_exists("-d")) {
+    /*if(arg_parser.flag_exists("-d")) {
         std::string deps = arg_parser.get_value("-d");
         preproc::expand_deps(source_lines, deps);
-    }
+    }*/
 
-    preproc::preprocess(source_lines, file_name);
+    //preproc::preprocess(source_lines, file_name);
 
 
     int source_lines_count = source_lines.size();
