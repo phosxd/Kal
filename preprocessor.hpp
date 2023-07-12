@@ -123,7 +123,7 @@ namespace preproc {
     }
 
 
-    /*void expand_deps(std::vector<std::string>& expanded_contents, std::string deps_str) {
+    void expand_deps(std::vector<std::string>& expanded_contents, std::string deps_str) {
         std::vector<std::string> deps;
         int size = deps_str.size();
         int index = size;
@@ -147,10 +147,10 @@ namespace preproc {
             index--;
         }
         for(std::string dep : deps) {
-            //std::vector<std::string> sloc = initial_preprocessing(dep);
-            //squash_vector(expanded_contents, sloc, 0, false);
+            std::vector<std::string> sloc = preprocess(dep);
+            squash_vector(expanded_contents, sloc, 0, false);
         }
 
-    }*/
+    }
 
 }

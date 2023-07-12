@@ -48,13 +48,10 @@ int main(int argc, char** argv) {
 
     source_lines = preproc::preprocess(file_name);
 
-    /*if(arg_parser.flag_exists("-d")) {
+    if(arg_parser.flag_exists("-d")) {
         std::string deps = arg_parser.get_value("-d");
         preproc::expand_deps(source_lines, deps);
-    }*/
-
-    //preproc::preprocess(source_lines, file_name);
-
+    }
 
     int source_lines_count = source_lines.size();
     for(int each_line = 0; each_line < source_lines_count; each_line++) {
