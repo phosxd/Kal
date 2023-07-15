@@ -105,10 +105,7 @@ namespace preproc {
 
             if(line[0] == '@') {
                 std::string include_path = line.substr(1);
-                int include_path_size = include_path.size();
-                if(include_path_size < 4 || include_path.substr(include_path_size - 4) != ".kal") {
-                    include_path += ".kal";
-                }
+                lib::ensure_extension(include_path, ".kal");
                 dirs.push(current_path);
                 abs_file_path = include_path;
                 std::vector<std::string> vals = preprocess(abs_file_path);

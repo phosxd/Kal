@@ -26,6 +26,17 @@ namespace lib {
         return rel_path;
     }
 
+    void ensure_extension(std::string& text, std::string ext) {
+        if(ext[0] != '.') {
+            ext = '.' + ext;
+        }
+        int ext_size = ext.size();
+        int text_size = text.size();
+        if(text_size < ext_size || text.substr(text_size - 4) != ext) {
+            text += ext;
+        }
+    }
+
     std::string get_dir(std::string given_path) {
         std::stringstream path(given_path);
         std::stringstream dir;
