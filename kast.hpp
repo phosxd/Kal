@@ -35,7 +35,7 @@ namespace kast {
         char* buffer = new char[size + 1];
         file.read(buffer, size);
         buffer[size] = '\0';
-        data = std::string(buffer);
+        data = buffer;
         delete[] buffer;
     }
 
