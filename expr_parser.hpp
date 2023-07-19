@@ -55,6 +55,7 @@ namespace ops {
                       bit_or = "|",
                       log_and = "&&",
                       log_or = "||",
+                      if_null = "??",
                       left = "(",
                       right = ")";
 }
@@ -69,14 +70,15 @@ bool match(std::string& text, std::string pattern, int& index) {
 }
 
 int order(std::string op) {
-    if      (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 12;
+    if (op == ops::if_null)                                                      return 13;
+    else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 12;
     else if (op == ops::exp)                                                     return 11;
     else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 10;
     else if (op == ops::add || op == ops::sub)                                   return 9;
     else if (op == ops::l_shift || op == ops::r_shift)                           return 8;
     else if (op == ops::lt || op == ops::lte || op == ops::gt || op == ops::gte) return 7;
     else if (op == ops::eq || op == ops::neq)                                    return 6;
-    else if (op == ops::bit_and)                                                 return 5;
+    else if (op == ops::bit_and)                                                 return 4;
     else if (op == ops::bit_xor)                                                 return 4;
     else if (op == ops::bit_or)                                                  return 3;
     else if (op == ops::log_and)                                                 return 2;
@@ -92,6 +94,13 @@ double mod(double x, double y) {
     }
     x = x < 0 ? -x : x;
     return x;
+}
+
+std::string if_null(std::string& first, std::string& second) {
+    if(first == parser::null_val) {
+        return second;
+    }
+    return first;
 }
 
 std::string eval(std::string expr) {
@@ -132,6 +141,11 @@ std::string eval(std::string expr) {
             rpn.push(value);
             index--;
         }
+        else if(match(expr, parser::null_val, index)) {
+            rpn.push(parser::null_val);
+            index++;
+            continue;
+        }
         else if(match(expr, ops::left, index)) {
             operators.push(ops::left);
         }
@@ -165,6 +179,7 @@ std::string eval(std::string expr) {
             SET_CURRENT_OP(ops::bit_and);
             SET_CURRENT_OP(ops::bit_xor);
             SET_CURRENT_OP(ops::bit_or);
+            SET_CURRENT_OP(ops::if_null);
             SET_CURRENT_OP(ops::negative);
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
@@ -212,6 +227,10 @@ std::string eval(std::string expr) {
             numbers.pop();
             a = numbers.top();
             numbers.pop();
+            if(a == parser::null_val && token == "??") {
+                numbers.push(if_null(a, b));
+                continue;
+            }
             if(is_string(a) && is_string(b)) {
                 if(token == "+") {
                     numbers.push(str_add(a, b));
@@ -235,6 +254,7 @@ std::string eval(std::string expr) {
             if(((is_string(a) && !is_string(b)) || (!is_string(a) && is_string(b))) && (token != "*")) {
                 std::cout << "error" << std::endl; exit(1);
             }
+
 
             x = std::stod(a);
             y = std::stod(b);
