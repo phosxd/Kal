@@ -246,15 +246,15 @@ std::string eval(std::string expr) {
                 }
                 continue;
             }
-            else if(is_string(a) && !is_string(b) && token == "*") {
-                numbers.push(str_mul(a, std::stod(b)));
+            else if(token == "*") {
+                if(is_string(a) && !is_string(b)) {
+                    numbers.push(str_mul(a, std::stod(b)));
+                }
+                else if(!is_string(a) && is_string(b)) {
+                    numbers.push(str_mul(b, std::stod(a)));
+                }
                 continue;
             }
-
-            if(((is_string(a) && !is_string(b)) || (!is_string(a) && is_string(b))) && (token != "*")) {
-                std::cout << "error" << std::endl; exit(1);
-            }
-
 
             x = std::stod(a);
             y = std::stod(b);
