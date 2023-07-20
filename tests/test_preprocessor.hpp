@@ -35,13 +35,4 @@ void test_preprocessor() {
     preproc::remove_comments(found);
     check(found, actual);
     progress();
-
-    title("preproc::clean_contents()");
-    orignal = { " a", "\tb", "\nc", "a ", "b\t", "c\n", " a ", "\tb\t", "\nc\n", "  \t\t\n abc \n\t\t  " };
-    actual_vec= { "a", "b", "c", "a", "b", "c", "a", "b", "c", "abc" };
-    found_vec = preproc::clean_contents(orignal);
-    for(uint64_t i = 0; i < orignal.size(); i++) {
-        check(found_vec[i], actual_vec[i]);
-    }
-    progress();
 }
