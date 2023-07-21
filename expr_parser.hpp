@@ -4,6 +4,7 @@
 #include <stack>
 #include <queue>
 #include <iostream>
+#include <cmath>
 
 #include "parser.hpp"
 #include "errors.hpp"
@@ -275,6 +276,7 @@ std::string eval(std::string expr) {
             else if(token == "*")   numbers.push(std::to_string(x * y));
             else if(token == "/")   numbers.push(std::to_string(x / y));
             else if(token == "%")   numbers.push(std::to_string(mod(x, y)));
+            else if(token == "**")  numbers.push(std::to_string(pow(x, y)));
             else if(token == "<<")  numbers.push(std::to_string(long(x) << long(y)));
             else if(token == ">>")  numbers.push(std::to_string(long(x) >> long(y)));
             else if(token == "<")   numbers.push(std::to_string(x < y));
