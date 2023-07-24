@@ -79,6 +79,10 @@ namespace errors {
     void invalid_string_operation_error(std::string& token, std::string& a, std::string& b) {
         throw_err("Expression", "Cannot use operator " + token + " on strings " + a + " and " + b);
     }*/
+
+    void invalid_operation_error(std::string& line, std::string type, std::string& op, std::string& val1, std::string& val2) {
+        throw_err(line, "Expression", "Cannot use operator {} on " + type + " {} and {}.", { op, val1, val2 });
+    }
     
     void var_redeclare_error(std::string var_name, std::string var_type) {
         std::cerr << style::style["red"] << style::style["bold"] << "Variable:" << style::style["reset"] << style::style["red"] << " Variable `" << var_name << "` of type `" << var_type << "` already exists." << style::style["reset"] << std::endl;

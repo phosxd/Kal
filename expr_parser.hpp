@@ -244,8 +244,8 @@ std::string eval(std::string expr) {
                     numbers.push(std::to_string(a != b));
                 }
                 else {
-                    //std::cout << "error" << std::endl; exit(1);
-                    //errors::invalid_string_operation_error(token, a, b);
+                    std::string line = a + " " + token + " " + b;
+                    errors::invalid_operation_error(line, "strings", token, a, b);
                 }
                 continue;
             }
@@ -264,6 +264,10 @@ std::string eval(std::string expr) {
                 }
                 else if(token == "!=") {
                     numbers.push(std::to_string(a != b));
+                }
+                else {
+                    std::string line = a + " " + token + " " + b;
+                    errors::invalid_operation_error(line, "values", token, a, b);
                 }
                 continue;
             }
