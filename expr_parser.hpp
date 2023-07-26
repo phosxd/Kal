@@ -106,6 +106,32 @@ std::string if_null(std::string& first, std::string& second) {
     return first;
 }
 
+/// dummy function.
+std::string get_val(std::string var) {
+    if(var == "$inner[7]") { return "10"; }
+    else if(var == "$hey[15]") { return "5"; }
+    else if(var == "$name[20]") { return "100"; }
+    return "";
+}
+///
+
+std::string expand_var(std::string var) {
+    int index = 0;
+    std::string variable = parser::parse_variable(var, index, false);
+    int size = var.size();
+    if(var[index] == '[') {
+        index++;
+        std::string sub = var.substr(index, size - index - 1);
+        sub = eval(sub);
+        variable += ("[" + sub + "]");
+        // get real values here.
+        /// dummy call.
+        variable = get_val(variable);
+        ///
+    }
+    return variable;
+}
+
 std::string eval(std::string expr) {
     std::string result;
     std::string current_op = "";
@@ -134,6 +160,11 @@ std::string eval(std::string expr) {
             rpn.push(value);
             index++;
             continue;
+        }
+        else if(expr[index] == '$') {
+            std::string var = parser::parse_variable(expr, index);
+            std::string val = expand_var(var);
+            rpn.push(val);
         }
         else if((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
             int begin = index;

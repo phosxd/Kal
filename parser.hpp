@@ -93,7 +93,7 @@ namespace parser {
         return expr;
     }
 
-    std::string parse_variable(const std::string& text, int& index) {
+    std::string parse_variable(const std::string& text, int& index, bool with_sub = true) {
         int begin = index;
         int text_pos = index;
         int text_size = text.size();
@@ -114,18 +114,16 @@ namespace parser {
                 if(text[index] == '\0' || text[index] == '=' || text[index] == ',' || WHITESPACE(index) || text[index] == '[') {
                     break;
                 }
-                END;
+                //END;
             }
             text_pos++;
         }
         int end = index;
         //index--;
         std::string required_string = text.substr(begin, end - begin);
-        if(text[index] == '[') {
+        if(text[index] == '[' && with_sub) {
             std::string sub_body = extract_list(text, index);
-            sub_body = sub_body.substr(1, sub_body.size() - 2);
-            sub_body = eval(sub_body);
-            required_string += "[" + sub_body + "]";
+            required_string += sub_body;
         }
         return required_string;
     }
