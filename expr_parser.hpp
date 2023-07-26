@@ -124,11 +124,11 @@ std::string expand_var(std::string var) {
         std::string sub = var.substr(index, size - index - 1);
         sub = eval(sub);
         variable += ("[" + sub + "]");
-        // get real values here.
-        /// dummy call.
-        variable = get_val(variable);
-        ///
     }
+    // get real values here.
+    /// dummy call.
+    variable = get_val(variable);
+    ///
     return variable;
 }
 
