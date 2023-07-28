@@ -104,13 +104,10 @@ std::string if_null(std::string& first, std::string& second) {
     return first;
 }
 
+/*
 std::string fstr(const std::string& text) {
     int index = 0;
     std::vector<std::string> values = parser::parse_fstr(text, index);
-    /*for(std::string x : values) {
-        std::cout << x << std::endl;
-    }
-    exit(0);*/
     std::string& head = values[0];
     int size = values.size();
     if(size == 1) {
@@ -136,6 +133,43 @@ std::string fstr(const std::string& text) {
         i++;
     }
     return fstring.str();
+}
+*/
+std::string fstr(const std::string& text) {
+    int index = 0;
+    std::vector<std::string> values = parser::parse_fstr(text, index);
+    std::string& head = values[0];
+    int size = values.size();
+    if(size == 1) {
+        return head;
+    }
+    std::string item;
+    std::string fstring = "";
+    int i = 0;
+    int count = 0;
+    int begin = 0;
+    int args = size - 1;
+    int head_size = head.size();
+    int last_i = head_size - 1;
+    while(i < head_size) {
+        if(parser::match(i, head, "{}", false) && count < args) {
+            fstring += head.substr(begin, i - begin);
+            item = eval(values[count + 1]);
+            if(lib::is_string(item)) {
+                item = lib::resolve_string(item);
+            }
+            fstring += item;
+            i += 2;
+            begin = i;
+            count++;
+            continue;
+        }
+        else if(i == last_i) {
+            fstring += head.substr(begin, i - begin + 1);
+        }
+        i++;
+    }
+    return fstring;
 }
 
 /// dummy function.
