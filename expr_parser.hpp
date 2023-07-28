@@ -5,16 +5,14 @@
 #include <queue>
 #include <iostream>
 #include <cmath>
+#include <sstream>
 
 #include "parser.hpp"
 #include "errors.hpp"
 #include "lib/lib_math.hpp"
+#include "lib/lib_string.hpp"
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
-
-bool is_string(const std::string& text) {
-    return text[0] == '"' && text[text.size() - 1] == '"';
-}
 
 std::string str_add(const std::string& x, const std::string& y) {
     std::string xy;
@@ -106,8 +104,43 @@ std::string if_null(std::string& first, std::string& second) {
     return first;
 }
 
+std::string fstr(const std::string& text) {
+    int index = 0;
+    std::vector<std::string> values = parser::parse_fstr(text, index);
+    /*for(std::string x : values) {
+        std::cout << x << std::endl;
+    }
+    exit(0);*/
+    std::string& head = values[0];
+    int size = values.size();
+    if(size == 1) {
+        return head;
+    }
+    std::stringstream fstring;
+    std::string item;
+    int i = 0;
+    int count = 0;
+    int args = size - 1;
+    int head_size = head.size();
+    while(i < head_size) {
+        if(parser::match(i, head, "{}") && count < args) {
+            item = eval(values[count + 1]);
+            if(lib::is_string(item)) {
+                item = lib::resolve_string(item);
+            }
+            fstring << item;
+            count++;
+            continue;
+        }
+        fstring << head[i];
+        i++;
+    }
+    return fstring.str();
+}
+
 /// dummy function.
 /// Sample expression: $name[$hey[$inner[1 + 2 * 3] + 5] + 15] * $pi
+///                    $name[ $hey[ $inner[ 1 + 2 * 3 ] + 5 ] + 15 ] * ($pi + 0.9)
 std::string get_val(std::string var) {
     if(var == "$inner[7]") { return "10"; }
     else if(var == "$hey[15]") { return "5"; }
@@ -167,6 +200,10 @@ std::string eval(std::string expr) {
             std::string var = parser::parse_variable(expr, index);
             std::string val = expand_var(var);
             rpn.push(val);
+        }
+        else if(parser::match(index, expr, "f[", false)) {
+            std::string line = parser::extract_fstr(expr, index);
+            rpn.push(fstr(line));
         }
         else if((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
             int begin = index;
@@ -267,7 +304,7 @@ std::string eval(std::string expr) {
                 numbers.push(if_null(a, b));
                 continue;
             }
-            if(is_string(a) && is_string(b)) {
+            if(lib::is_string(a) && lib::is_string(b)) {
                 if(token == "+") {
                     numbers.push(str_add(a, b));
                 }
@@ -283,11 +320,11 @@ std::string eval(std::string expr) {
                 }
                 continue;
             }
-            else if(token == "*" && is_string(a) && !is_string(b)) {
+            else if(token == "*" && lib::is_string(a) && !lib::is_string(b)) {
                 numbers.push(str_mul(a, std::stod(b)));
                 continue;
             }
-            else if(token == "*" && !is_string(a) && is_string(b)) {
+            else if(token == "*" && !lib::is_string(a) && lib::is_string(b)) {
                 numbers.push(str_mul(b, std::stod(a)));
                 continue;
             }

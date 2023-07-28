@@ -28,6 +28,10 @@ namespace lib {
         return text;
     }
 
+    bool is_string(const std::string& text) {
+        return text[0] == '"' && text[text.size() - 1] == '"';
+    }
+
     bool ends_with(const std::string& major_string, const std::string& minor_string) {
         int major_string_size = major_string.size();
         int minor_string_size = minor_string.size();

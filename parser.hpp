@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "config.hpp"
+#include "lib/lib_string.hpp"
 
 #define WHITESPACE(position) (text[position] == ' ' || text[position] == '\t' || text[position] == '\n' || text[position] == '\r')
 
@@ -16,6 +17,7 @@ std::string eval(std::string expr);
 namespace parser {
     // for now.
     std::string extract_list(const std::string&, int&);
+    std::string parse_value(const std::string&, int&);
     // for now.
     std::string general_delimiter = ",";
     std::string str_delimiter = "\"";
@@ -143,6 +145,35 @@ namespace parser {
         return text.substr(start, index - start + 1);
     }
 
+    std::string extract_fstr(const std::string& text, int& index) {
+        index++;
+        std::string required_fstr = 'f' + extract_list(text, index);
+        return required_fstr;
+    }
+
+    std::vector<std::string> parse_fstr(const std::string& text, int& index) {
+        index++;
+        std::vector<std::string> values;
+        std::string contents = extract_list(text, index);
+        contents = contents.substr(1, contents.size() - 2);
+        int begin = 0;
+        int size = contents.size();
+        std::string item;
+        while(begin < size) {
+            while(contents[begin] == ' ' || contents[begin] == '\t' || contents[begin] == '\n') {
+                begin++;
+            }
+            if(contents[begin] == ',') {
+                begin++;
+                continue;
+            }
+            item = parse_value(contents, begin);
+            values.emplace_back(item);
+            begin++;
+        }
+        return values;
+    }
+
     std::unordered_map<std::string, std::string> parse_list(std::string& text, int index = 0) {
         int pos = -1;
         int depth = 0;
@@ -235,6 +266,9 @@ namespace parser {
         else if(text[index] == '"') {
             required_token = parse_string(text, index);
         }
+        else if(match(index, text, "f[", false)) {
+            required_token = extract_fstr(text, index);
+        }
         else if(match(index, text, null_val)) {
             required_token = null_val;
             index--;
@@ -249,69 +283,6 @@ namespace parser {
 
         return required_token;
     }
-
-    /*std::vector<std::string> parse_init(const std::string& text, int& index) {
-        int begin = index;
-        int end = index;
-        int text_size = text.size();
-        std::vector<std::string> tokens;
-        std::string required_token = "";
-        while(index < text_size) {
-            bool key_val = false;
-            if(text[index] == '=') {
-                key_val = true;
-                end = index;
-                while(WHITESPACE(end - 1)) {
-                    end--;
-                }
-                required_token = text.substr(begin, end - begin);
-                tokens.emplace_back(required_token);
-
-                index++;
-                while(WHITESPACE(index)) {
-                    index++;
-                }
-                required_token = parse_value(text, index);
-                tokens.emplace_back(required_token);
-                index++;
-                while(WHITESPACE(index)) {
-                    index++;
-                }
-            }
-            if(text[index] == ',' || index == text_size - 1) {
-                if(!key_val) {
-                    int offset = 1;
-                    if(index == text_size - 1 && text[text_size - 1] != ',') {
-                        offset++;
-                    }
-                    int var_end = index;
-                    while(WHITESPACE(var_end - 1)) {
-                        var_end--;
-                    }
-                    var_end--;
-                    int var_start = var_end;
-                    while(is_alpha(text[var_start - 1])) {
-                        var_start--;
-                    }
-                    required_token = text.substr(var_start, var_end - var_start + offset);
-                    tokens.emplace_back(required_token);
-                    tokens.emplace_back(null_val);
-                }
-                index++;
-                while(WHITESPACE(index)) {
-                    index++;
-                }
-                begin = index;
-                continue;
-            }
-            if(match(index, text, target_operator, false)) {
-                END;
-            }
-            index++;
-        }
-
-        return tokens;
-    }*/
 
     std::vector<std::string> parse_init(const std::string& text, int& index) {
         std::vector<std::string> tokens;
