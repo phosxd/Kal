@@ -151,25 +151,70 @@ namespace parser {
         return required_fstr;
     }
 
+    void skip_string(std::string& text, int& index) {
+        index++;
+        while(text[index] != '"') {
+            index++;
+        }
+    }
+
+    void skip_list(std::string& text, char open, int& index) {
+        char close;
+        if(open == '[') {
+            close = ']';
+        }
+        else if(open == '(') {
+            close = ')';
+        }
+        int depth = 0;
+        while(text[index] != close || depth != 0) {
+            if(text[index] == '"') {
+                skip_string(text, index);
+            }
+            if(text[index] == open) {
+                depth++;
+            }
+            else if(text[index + 1] == close) {
+                depth--;
+            }
+            index++;
+        }
+    }
+
     std::vector<std::string> parse_fstr(const std::string& text, int& index) {
         index++;
         std::vector<std::string> values;
         std::string contents = extract_list(text, index);
         contents = contents.substr(1, contents.size() - 2);
         int begin = 0;
+        int end = 0;
+        int i = 0;
         int size = contents.size();
+        int last_i = size - 1;
         std::string item;
-        while(begin < size) {
+        while(i < size) {
             while(contents[begin] == ' ' || contents[begin] == '\t' || contents[begin] == '\n') {
                 begin++;
             }
-            if(contents[begin] == ',') {
-                begin++;
-                continue;
+            if(contents[i] == '"') {
+                skip_string(contents, i);
             }
-            item = parse_value(contents, begin);
-            values.emplace_back(item);
-            begin++;
+            else if(contents[i] == '[' || contents[i] == '(') {
+                skip_list(contents, contents[i], i);
+            }
+            if(contents[i] == ',' || i == last_i) {
+                end = i;
+                if(i == last_i) {
+                    end++;
+                }
+                while(contents[end - 1] == ' ' || contents[end - 1] == '\t' || contents[end - 1] == '\n') {
+                    end--;
+                }
+                item = contents.substr(begin, end - begin);
+                values.emplace_back(item);
+                begin = i + 1;
+            }
+            i++;
         }
         return values;
     }

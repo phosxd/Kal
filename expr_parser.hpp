@@ -142,6 +142,7 @@ std::string fstr(const std::string& text) {
     if(size == 0) {
         return "";
     }
+    values[0] = eval(values[0]);
     std::string& head = values[0];
     if(size == 1) {
         return head;
