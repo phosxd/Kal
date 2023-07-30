@@ -329,7 +329,7 @@ namespace parser {
         return required_token;
     }
 
-    std::vector<std::string> parse_init(const std::string& text, int& index) {
+    std::vector<std::string> parse_init(std::string text, int& index) {
         std::vector<std::string> tokens;
         std::string required_token = "";
         int text_size = text.size();
@@ -345,6 +345,9 @@ namespace parser {
             while(WHITESPACE(index)) {
                 index++;
             }
+            if(index < text_size && match(index, text, target_operator, false)) {
+                END;
+            }
             if(text[index] == ',' || index == text_size) {
                 tokens.emplace_back(null_val);
                 index++;
@@ -355,26 +358,25 @@ namespace parser {
                 while(WHITESPACE(index)) {
                     index++;
                 }
-                required_token = parse_value(text, index);
+                int begin = index;
+                while(text[index] != ',' && index != text_size) {
+                    if(index < text_size && match(index, text, target_operator, false)) {
+                        END;
+                    }
+                    if(text[index] == '"') {
+                        skip_string(text, index);
+                    }
+                    if(text[index] == '[' || text[index] == '(') {
+                        skip_list(text, text[index], index);
+                    }
+                    index++;
+                }
+                int end = index;
+                while(WHITESPACE(end - 1)) {
+                    end--;
+                }
+                required_token = text.substr(begin, end - begin);
                 tokens.emplace_back(required_token);
-                index++;
-
-                while(WHITESPACE(index)) {
-                    index++;
-                }
-                if(match(index, text, target_operator, false)) {
-                    END;
-                }
-                if(index == text_size) {
-                    break;
-                }
-                if(text[index] == ',') {
-                    index++;
-                    continue;
-                }
-                else {
-                    std::cout << index << " comma expected\n"; END;
-                }
             }
             else {
                 END;
