@@ -159,7 +159,7 @@ namespace parser {
     }
 
     void skip_list(std::string& text, char open, int& index) {
-        char close;
+        char close = '\0';
         if(open == '[') {
             close = ']';
         }
