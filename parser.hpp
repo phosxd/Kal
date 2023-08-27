@@ -124,8 +124,11 @@ namespace parser {
         //index--;
         std::string required_string = text.substr(begin, end - begin);
         if(text[index] == '[' && with_sub) {
-            std::string sub_body = extract_list(text, index);
-            required_string += sub_body;
+            while(text[index] == '[') {
+                std::string sub_body = extract_list(text, index);
+                index++;
+                required_string += sub_body;
+            }
         }
         return required_string;
     }
