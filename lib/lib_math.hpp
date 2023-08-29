@@ -2,26 +2,20 @@
 
 namespace lib {
     std::string trim_num(std::string num) {
-        std::string number;
-        int size = num.size();
-        int index = size - 1;
-
-        while(index && index >= 0) {
-            if(num[index] == '.') {
-                break;
-            }
-            else if(num[index] != '0') {
-                index++;
-                break;
-            }
-            index--;
-        }
-
-        if(index == 0) {
+        int radix = num.find(".");
+        if(radix == std::string::npos) {
             return num;
         }
 
-        number = num.substr(0, index);
-        return number;
+        int pos = num.size();
+        while(num[pos - 1] == '0') {
+            pos--;
+        }
+
+        if(num[pos - 1] == '.') {
+            pos--;
+        }
+
+        return num.substr(0, pos);
     }
 }

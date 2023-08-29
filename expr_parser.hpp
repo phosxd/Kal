@@ -169,6 +169,7 @@ std::string get_val(std::string var) {
     else if(var == "$hey[15]") { return "5"; }
     else if(var == "$name[20]") { return "100"; }
     else if(var == "$name[20][25]") { return "250"; }
+    else if(var == "$a[5][3][1]") { return "3600.00200"; }
     else if(var == "$pi") { return "3.14"; }
     return "";
 }
@@ -410,6 +411,7 @@ std::string eval(std::string expr) {
             else if(token == "||")  numbers.push(std::to_string(x || y));
         }
     }
+
     result = lib::trim_num(numbers.top());
     numbers.pop();
     return result;
