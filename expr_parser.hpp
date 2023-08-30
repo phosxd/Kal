@@ -267,6 +267,9 @@ std::string eval(std::string expr) {
             std::string val = expand_var(var);
             rpn.push(val);
         }
+        else if(expr[index] == '[') {
+            rpn.push(parser::extract_list(expr, index));
+        }
         else if(parser::match(index, expr, "f[", false)) {
             std::string line = parser::extract_fstr(expr, index);
             rpn.push(fstr(line));
