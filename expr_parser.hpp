@@ -33,6 +33,30 @@ std::string str_mul(std::string& x, double d_times) {
     return x_times.str();
 }
 
+std::string to_str(std::string num) {
+    if(num[0] == '"' && num[num.size() - 1] == '"') {
+        return num;
+    }
+    return '"' + lib::trim_num(num) + '"';
+}
+
+std::string to_float(std::string num) {
+    int size = num.size();
+    if(num[0] == '"' && num[size - 1] == '"') {
+        num = num.substr(1, size - 2);
+    }
+    return num;
+}
+
+std::string to_integer(std::string num) {
+    num = to_float(num);
+    int radix = num.find(".");
+    if(radix != std::string::npos) {
+        num = num.substr(0, radix);
+    }
+    return num;
+}
+
 namespace ops {
     const std::string negative = "n",
                       log_not = "!",
@@ -60,7 +84,10 @@ namespace ops {
                       t_if = "?",
                       t_else = ":",
                       left = "(",
-                      right = ")";
+                      right = ")",
+                      to_s = "s",
+                      to_f = "f",
+                      to_i = "i";
 }
 
 bool match(std::string& text, std::string pattern, int& index) {
@@ -73,7 +100,8 @@ bool match(std::string& text, std::string pattern, int& index) {
 }
 
 int order(std::string op) {
-    if (op == ops::if_null)                                                      return 14;
+    if(op == ops::to_s || op == ops::to_f || op == ops::to_i)                    return 15;
+    else if (op == ops::if_null)                                                 return 14;
     else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 13;
     else if (op == ops::exp)                                                     return 12;
     else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 11;
@@ -294,6 +322,9 @@ std::string eval(std::string expr) {
             SET_CURRENT_OP(ops::negative);
             SET_CURRENT_OP(ops::t_if);
             SET_CURRENT_OP(ops::t_else);
+            SET_CURRENT_OP(ops::to_s);
+            SET_CURRENT_OP(ops::to_f);
+            SET_CURRENT_OP(ops::to_i);
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
                 rpn.push(operators.top());
@@ -315,11 +346,34 @@ std::string eval(std::string expr) {
     double x = 0, y = 0;
     std::string token;
     std::stack<std::string> numbers;
+
+    /*while(!rpn.empty()) {
+        std::cout << rpn.front() << " ";
+        rpn.pop();
+    }
+    std::cout << "\n";
+    exit(1);*/
+
     while(!rpn.empty()) {
         token = rpn.front();
         rpn.pop();
+        //std::cout << "Token: [" << token << "] Order: " << order(token) << std::endl;
         if(!order(token)) {
             numbers.push(token);
+        }
+        else if(order(token) == 15) {
+            std::string ystr = numbers.top();
+            numbers.pop();
+            if(token == "s") {
+                ystr = to_str(ystr);
+            }
+            else if(token == "f") {
+                ystr = to_float(ystr);
+            }
+            else if(token == "i") {
+                ystr = to_integer(ystr);
+            }
+            numbers.push(ystr);
         }
         else if(order(token) == 13) {
             y = std::stod(numbers.top());
