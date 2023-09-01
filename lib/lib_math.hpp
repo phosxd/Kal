@@ -2,7 +2,7 @@
 
 namespace lib {
     std::string trim_num(std::string num) {
-        int radix = num.find(".");
+        size_t radix = num.find(".");
         if(radix == std::string::npos) {
             return num;
         }

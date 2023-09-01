@@ -50,7 +50,7 @@ std::string to_float(std::string num) {
 
 std::string to_integer(std::string num) {
     num = to_float(num);
-    int radix = num.find(".");
+    size_t radix = num.find(".");
     if(radix != std::string::npos) {
         num = num.substr(0, radix);
     }
