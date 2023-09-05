@@ -453,6 +453,9 @@ namespace parser {
                     if(text[index] == '[' || text[index] == '(') {
                         skip_list(text, text[index], index);
                     }
+                    if(match(index, text, "#(", false)) {
+                        skip_dict(text, index);
+                    }
                     index++;
                 }
                 int end = index;
