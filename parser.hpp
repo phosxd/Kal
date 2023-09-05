@@ -155,11 +155,19 @@ namespace parser {
         return text.substr(start, index - start + 1);
     }
 
+    // Merge the below two versions into one if possible. Also I might need same type of function to extract $[] and $(), so it's better to have one.
     std::string extract_fstr(const std::string& text, int& index) {
         index++;
         std::string required_fstr = 'f' + extract_list(text, '[', index);
         return required_fstr;
     }
+
+    std::string extract_dict(const std::string& text, int& index) {
+        index++;
+        std::string required_dict = '#' + extract_list(text, '(', index);
+        return required_dict;
+    }
+
 
     void skip_string(std::string& text, int& index) {
         index++;
@@ -189,6 +197,11 @@ namespace parser {
             }
             index++;
         }
+    }
+
+    void skip_dict(std::string& text, int& index) {
+        index++;
+        skip_list(text, '(', index);
     }
 
     std::vector<std::string> parse_fstr(const std::string& text, int& index) {
