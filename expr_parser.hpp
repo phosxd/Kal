@@ -215,6 +215,24 @@ std::string eval_indices(const std::string& text, int& index) {
     return evaluated;
 }
 
+std::vector<std::string> get_var_with_indices(std::string var) {
+    int index = 0;
+    int size = var.size();
+    std::vector<std::string> var_data;
+    std::string variable = parser::parse_variable(var, index, false);
+    var_data.emplace_back(variable);
+    while(index < size) {
+        if(var[index] == '[') {
+            std::string idx = parser::extract_list(var, '[', index);
+            idx = eval(idx.substr(1, idx.size() - 2));
+            var_data.emplace_back(idx);
+        }
+        index++;
+    }
+
+    return var_data;
+}
+
 std::string expand_var(std::string var) {
     int index = 0;
     std::string variable = parser::parse_variable(var, index, false);
@@ -228,7 +246,6 @@ std::string expand_var(std::string var) {
     }
     // get real values here.
     /// dummy call.
-    variable = get_val(variable);
     ///
     return variable;
 }
