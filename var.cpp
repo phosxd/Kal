@@ -1,0 +1,715 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <cstring>
+#include <sstream>
+#include <algorithm>
+
+#include "expr_parser.hpp"
+
+#include "lib/lib_string.hpp"
+
+std::vector<std::string> parse_map(std::string text, int& index) {
+    index++;
+    std::string contents = parser::extract_list(text, '(', index);
+    contents = contents.substr(1, contents.size() - 2);
+
+    int pos = 0;
+    std::vector<std::string> vals = parser::parse_init(contents, pos, true);
+    return vals;
+}
+
+/*
+
+TODO: 1. [DONE] Change the VarTable::get() function to get the values via indices as well as keys.
+      2. [DONE] Add dict parsing and eval in list.
+      3. [DONE] Perform some forward declarations to be able to print dicts in lists.
+      4. [DONE] Change the constructors to take in the values in Kal format instead being passed as std::vector.
+      5. [DONE] Think about the key-value order in dict.
+      6. Use dynamic_cast<>() for pointer casting almost everywhere instead of C style casting.
+      7. [DONE] Use std::stringstream to generate string to be displayed instead of printing it.
+      8. [DONE] Add code to copy by reference and copy by value (use get() function when copying instead of fetching from memory (might need forward decl of VarTable class)).
+      9. [DONE] When a reference is assigned to a reference, make sure to resolve it and point the new ref to the underlying value and not the reference.
+      10. Add code to change the real value with the change in reference.
+
+      8. Modify expr parser to parse dicts as they are.
+      9. [DONE] Use a single set function to add all types of data.
+      10. Eval the data before setting.
+
+      a. [DONE] Resolve quotes in keys if passes as a string.
+      b. [DONE] Add null.
+      c. add new pretty print kind of function to print a pretty dict when the items are more than 5 and same for list when items are more than 10 or something.
+
+      Maybe forward Declare VarTable class right after Value class to make memory map a part of the class.
+      In ExprParser, check if in the end if there's only a var left. if so, then assign the given var by using the get() function.
+
+*/
+
+class Value {
+    public:
+        std::string type = "";
+        bool is_ref = false;
+        virtual std::string print() = 0;
+        virtual ~Value() {}
+};
+
+class Ref : public Value {
+    public:
+        std::string type = "Ref";
+        Value* ref = nullptr;
+        Value* parent = nullptr;
+        Ref(Value*, Value* = nullptr);
+        std::string print();
+        ~Ref();
+};
+
+class Number : public Value {
+    public:
+        std::string type = "Number";
+        std::string val;
+        Number(std::string);
+        std::string print();
+        ~Number();
+};
+
+class String : public Value {
+    public:
+        char* str;
+        std::string type = "String";
+        String(std::string);
+        std::string print();
+        std::string val();
+        ~String();
+};
+
+class List : public Value {
+    public:
+        std::vector<Value*> items;
+        std::string type = "List";
+        List();
+        List(std::string);
+        std::string print();
+        ~List();
+};
+
+class Dict : public Value {
+    public:
+        std::unordered_map<std::string, Value*> dict;
+        std::string type = "Dict";
+        std::vector<std::string> keys;
+        Dict();
+        Dict(std::string);
+        void append_unique(std::string, bool = false);
+        std::string print();
+        ~Dict();
+};
+
+class Null : public Value {
+    public:
+        std::string type = "Null";
+        Null();
+        std::string print();
+        ~Null();
+};
+
+Value* copy(Value*);
+std::unordered_map<std::string, Value*> memory;
+namespace VarTable {
+    Value* get(std::string, std::vector<std::string> = {}, bool = false, bool = false, bool = true);
+}
+
+///
+Ref::Ref(Value* val, Value* p) : ref(val), parent(p) {}
+std::string Ref::print() {
+    return ref->print();
+}
+Ref::~Ref() {}
+///
+
+/// Null
+Null::Null() {}
+std::string Null::print() {
+    return "null";
+}
+Null::~Null() {}
+///
+
+/// Number
+Number::Number(std::string Val) : val(Val) {}
+std::string Number::print() {
+    return val;
+}
+Number::~Number() {}
+///
+
+/// String
+String::String(std::string Str) {
+    int len = Str.size();
+    str = new char[len + 1];
+    strcpy(str, Str.c_str());
+    str[len] = '\0';
+}
+
+std::string String::print() {
+    return std::string(str);
+}
+
+std::string String::val() {
+    return lib::resolve_string(std::string(str));
+}
+
+String::~String() {
+    delete[] str;
+    str = nullptr;
+}
+///
+
+/// List
+
+List::List() {}
+
+List::List(std::string list) {
+    int index = 0;
+    std::vector<std::string> values = parser::parse_list(list, index);
+    for(std::string v : values) {
+        if(v[0] >= '0' && v[0] <= '9') {
+            items.emplace_back(new Number(v));
+        }
+        else if(v[0] == '"') {
+            items.emplace_back(new String(v.c_str()));
+        }
+        else if(v[0] == '[') {
+            items.emplace_back(new List(v));
+        }
+        else if(v[0] == '#' && v[1] == '(') {
+            items.emplace_back(new Dict(v));
+        }
+        else if(v == "null") {
+            items.emplace_back(new Null());
+        }
+        else if(v[0] == '$') {
+            items.emplace_back(VarTable::get(v, {}));
+        }
+    }
+}
+
+std::string List::print() {
+    int size = items.size();
+    int last = size - 1;
+    std::string sep = ", ";
+    std::stringstream disp;
+    disp << "[";
+    for(int v = 0; v < size; v++) {
+        if(items[v]->type == "Number") {
+             disp << ((Number*)items[v])->print();
+        }
+        else if(items[v]->type == "String") {
+             disp << ((String*)items[v])->print();
+        }
+        else if(items[v]->type == "Dict") {
+             disp << ((Dict*)items[v])->print();
+        }
+        else if(items[v]->type == "Null") {
+            disp << ((Null*)items[v])->print();
+        }
+        else {
+             disp << items[v]->print();
+        }
+
+        if(v == last) {
+            sep = "";
+        }
+        disp << sep;
+     }
+     disp << "]";
+
+     return disp.str();
+}
+
+List::~List() {
+    for(Value*& v : items) {
+        delete v;
+        v = nullptr;
+    }
+}
+///
+
+/// Dict
+Dict::Dict() {}
+
+Dict::Dict(std::string dict_val) {
+    int index = 0;
+    std::vector<std::string> kv = parse_map(dict_val, index);
+    int size = kv.size();
+    keys.reserve(size / 2);
+    for(int i = 0; i < size; i += 2) {
+        // if the key already exists, then free it's value first.
+        append_unique(kv[i], true);
+        if(kv[i][0] == '"' && kv[i][kv[i].size() - 1] == '"') {
+            kv[i] = lib::resolve_string(kv[i]);
+        }
+        if(kv[i + 1][0] >= '0' && kv[i + 1][0] <= '9') {
+            dict[kv[i]] = new Number((kv[i + 1]));
+        }
+        else if(kv[i + 1][0] == '"') {
+            dict[kv[i]] = new String(kv[i + 1].c_str());
+        }
+        else if(kv[i + 1][0] == '[') {
+            dict[kv[i]] = new List(kv[i + 1]);
+        }
+        else if(kv[i + 1][0] == '#' && kv[i + 1][1] == '(') {
+            dict[kv[i]] = new Dict(kv[i + 1]);
+        }
+        else if(kv[i + 1] == "null") {
+            dict[kv[i]] = new Null();
+        }
+        else if(kv[i + 1][0] == '$') {
+            dict[kv[i]] = VarTable::get(kv[i + 1], {});
+        }
+    }
+}
+
+void Dict::append_unique(std::string key, bool del_val) {
+    if(std::find(keys.begin(), keys.end(), key) == keys.end()) {
+        keys.emplace_back(key);
+    }
+    else if(del_val) {
+        delete dict[key];
+        dict[key] = nullptr;
+    }
+}
+
+std::string Dict::print() {
+    std::stringstream disp;
+    std::string last = keys[keys.size() - 1];
+    std::string sep = ", ";
+    disp << "#(";
+    for(std::string key : keys) {
+        Value*& value = dict[key];
+        disp << key << " -> ";
+        if(value->type == "Number") {
+            disp << ((Number*)value)->print();
+        }
+        else if(value->type == "String") {
+            disp << ((String*)value)->print();
+        }
+        else if(value->type == "List") {
+            disp << ((List*)value)->print();
+        }
+        else if(value->type == "Null") {
+            disp << ((Null*)value)->print();
+        }
+        else {
+            disp << value->print();
+        }
+
+        if(last == key) {
+            sep = "";
+        }
+
+        disp << sep;
+    }
+    disp << ")";
+
+    return disp.str();
+}
+
+Dict::~Dict() {
+    std::unordered_map<std::string, Value*>::iterator itr;
+    for(itr = dict.begin(); itr != dict.end(); itr++) {
+        if(itr->second != nullptr) {
+            delete itr->second;
+            dict[itr->first] = nullptr;
+        }
+    }
+}
+///
+
+Value* copy(Value* value) {
+    Value* duplicate = nullptr;
+
+    if(dynamic_cast<Number*>(value)) {
+        duplicate = new Number((dynamic_cast<Number*>(value))->val);
+    }
+    else if(dynamic_cast<String*>(value)) {
+        duplicate = new String((dynamic_cast<String*>(value))->str);
+    }
+    else if(dynamic_cast<Null*>(value)) {
+        duplicate = new Null();
+    }
+    else if(dynamic_cast<List*>(value)) {
+        duplicate = new List();
+        List* list_val = dynamic_cast<List*>(value);
+        List* list_dup = dynamic_cast<List*>(duplicate);
+        list_dup->items.reserve(list_val->items.size());
+        for(Value* v : list_val->items) {
+            list_dup->items.emplace_back(copy(v));
+        }
+    }
+    else if(dynamic_cast<Dict*>(value)) {
+        duplicate = new Dict();
+        Dict* dict_val = dynamic_cast<Dict*>(value);
+        Dict* dict_dup = dynamic_cast<Dict*>(duplicate);
+        dict_dup->keys.reserve(dict_val->keys.size());
+        for(std::string& key : dict_val->keys) {
+            dict_dup->keys.emplace_back(key);
+        }
+        for(std::pair<std::string, Value*> key_val : dict_val->dict) {
+            dict_dup->dict[key_val.first] = copy(key_val.second);
+        }
+    }
+    else if(dynamic_cast<Ref*>(value)) {
+        // check it it's necessary to copy the parent pointer too.
+        duplicate = new Ref((dynamic_cast<Ref*>(value))->ref);
+    }
+
+    if(duplicate == nullptr) { std::cout << "cannot determine type\n"; exit(1); }
+
+    return duplicate;
+}
+
+namespace RefTable {
+    std::vector<Value*> variables;
+    std::vector<std::vector<Ref*>> references;
+
+    void add(Value*& val) {
+        std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), val);
+        if(idx_itr == variables.end()) {
+            variables.emplace_back(val);
+            references.emplace_back(std::vector<Ref*> {});
+        }
+    }
+
+    void add_ref(Value*& var, Ref* var_ref) {
+        std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), var);
+        if(idx_itr != variables.end()) {
+            int idx = idx_itr - variables.begin();
+            references[idx].emplace_back(var_ref);
+        }
+    }
+
+    void change_var(Value* old_var, Value* new_var) {
+        std::vector<Value*>::iterator idx_itr = find(variables.begin(), variables.end(), old_var);
+        if(idx_itr != variables.end()) {
+            int idx = idx_itr - variables.begin();
+            // delete variables[idx];
+            variables[idx] = new_var;
+            for(Ref*& r : references[idx]) {
+                r->ref = new_var;
+            }
+        }
+    }
+}
+
+namespace VarTable {
+    void gc() {
+        std::unordered_map<std::string, Value*>::iterator itr;
+        for(itr = memory.begin(); itr != memory.end(); itr++) {
+            if(itr->second != nullptr) {
+                delete itr->second;
+                memory[itr->first] = nullptr;
+            }
+        }
+    }
+
+    Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original) {
+        if(symbols.size() == 0) {
+            symbols = get_var_with_indices(name);
+        }
+
+        std::string var_name = symbols[0];
+        if(var_name[0] != '$') {
+            std::cout << "expected $\n";
+            exit(0);
+        }
+        bool is_ref = false;
+        uint8_t pos = 1;
+        if(var_name[1] == '&') {
+            is_ref = true;
+            pos++;
+        }
+        var_name = var_name.substr(pos);
+        Value* var = memory[var_name];
+        int size = symbols.size();
+        int bound = size;
+
+        //bool at_parent = false;
+        Value* p = nullptr;
+        if(size > 1) {
+            if(update && !for_print) {
+                bound--;
+                //at_parent = true;
+            }
+            for(int i = 1; i < bound; i++) {
+                if(dynamic_cast<Ref*>(var)) {
+                    var = (dynamic_cast<Ref*>(var))->ref;
+                }
+                if(symbols[i][0] >= '0' && symbols[i][0] <= '9') {
+                    int index = std::stoi(symbols[i]);
+                    int size = (dynamic_cast<List*>(var))->items.size();
+                    if(index >= size) {
+                        std::cout << "index " << symbols[i] << " out of bounds\n";
+                        exit(1);
+                    }
+                    var = (dynamic_cast<List*>(var))->items[index];
+                }
+                else if(symbols[i][0] == '"' && symbols[i][symbols[i].size() - 1] == '"') {
+                    std::string key = lib::resolve_string(symbols[i]);
+                    var = (dynamic_cast<Dict*>(var))->dict[key];
+                    if(var == nullptr) {
+                        std::cout << "key " << symbols[i] << " does not exist\n";
+                        exit(1);
+                    }
+                }
+                if(!update && bound == 2) {
+                    p = memory[var_name];
+                }
+                // make experiments to check if it should be -1 or -2.
+                else if(!update && i == size - 2) {
+                    p = var;
+                }
+                /*if(at_parent) {
+                    p = var;
+                }*/
+                /*else {
+                    if(i == size - 2) {
+                        std::cout << "p: " << var << "\n";
+                        p = var;
+                    }
+                }*/
+            }
+        }
+
+        if(for_print) {
+            return var;
+        }
+
+        if(get_original && dynamic_cast<Ref*>(var)) {
+            var = (dynamic_cast<Ref*>(var))->ref;
+        }
+
+        if(!is_ref && !update) {
+            var = copy(var);
+        }
+        if(is_ref) {
+            RefTable::add(var);
+            Value* tmp = var;
+            var = new Ref(var, p);
+            RefTable::add_ref(tmp, dynamic_cast<Ref*>(var));
+        }
+
+        return var;
+    }
+
+    void set(std::string var, std::string data) {
+        if(var[1] == '&') {
+            std::cout << "Cannot use `&` while setting a variable.\n";
+            exit(0);
+        }
+        Value* value = nullptr;
+        if(data[0] >= '0' && data[0] <= '9') {
+            value = new Number(data);
+        }
+        else if(data[0] == '"') {
+            value = new String(data);
+        }
+        else if(data[0] == '[') {
+            value = new List(data);
+        }
+        else if(data[0] == '#' && data[1] == '(') {
+            value = new Dict(data);
+        }
+        else if(data == "null") {
+            value = new Null();
+        }
+        else if(data[0] == '$') {
+            value = get(data, {});
+            if(dynamic_cast<Ref*>(value)) {
+                RefTable::add((dynamic_cast<Ref*>(value))->ref);
+                RefTable::add_ref((dynamic_cast<Ref*>(value)->ref), dynamic_cast<Ref*>(value));
+            }
+        }
+
+        if(var[0] == '$') {
+            std::string v_name = var.substr(1);
+            if(memory[v_name] != nullptr) {
+                if(dynamic_cast<Ref*>(memory[v_name])) {
+                    std::unordered_map<std::string, Value*>::iterator itr;
+                    Value* oval = (dynamic_cast<Ref*>(memory[v_name]))->ref;
+                    std::string ovar = "";
+                    bool found_ovar = false;
+                    for(itr = memory.begin(); itr != memory.end(); itr++) {
+                        if(itr->second == oval) {
+                            ovar = itr->first;
+                            found_ovar = true;
+                            break;
+                        }
+                    }
+                    if(found_ovar) {
+                        Value* prev = (dynamic_cast<Ref*>(memory[v_name]))->ref;
+                        RefTable::change_var(prev, value);
+                        delete prev;
+                        memory[ovar] = value;
+                    }
+                    else {
+                        Value* prev_val = (dynamic_cast<Ref*>(memory[v_name]))->ref;
+                        Value* parent_val = (dynamic_cast<Ref*>(memory[v_name]))->parent;
+                        Value* prev =  (dynamic_cast<Ref*>(memory[v_name]))->ref;
+                        RefTable::change_var(prev, value);
+                        delete prev;
+                        if(dynamic_cast<List*>(parent_val)) {
+                            List* p_list = dynamic_cast<List*>(parent_val);
+                            for(uint64_t i = 0; i < p_list->items.size(); i++) {
+                                if(prev_val == p_list->items[i]) {
+                                    p_list->items[i] = value;
+                                    break;
+                                }
+                            }
+                        }
+                        // TODO: perform the same operation for dict as done for list above. (done)
+                        else if(dynamic_cast<Dict*>(parent_val)) {
+                            Dict* p_dict = dynamic_cast<Dict*>(parent_val);
+                            std::unordered_map<std::string, Value*>::iterator itr;
+                            for(itr = p_dict->dict.begin(); itr != p_dict->dict.end(); itr++) {
+                                if(prev_val == itr->second) {
+                                    // might have to use append_unique() here.
+                                    p_dict->dict[itr->first] = value;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    Value* prev = memory[v_name];
+                    RefTable::change_var(prev, value);
+                    delete prev;
+                    memory[v_name] = value;
+                }
+            }
+            else {
+                std::vector<std::string> syms = get_var_with_indices(var);
+                std::string last_symbol = syms[syms.size() - 1];
+                Value* v = get("", syms, true);
+
+
+                // get the orignal val and check if it's a ref. if yes, then use the upper and below method to change it.
+                Value* ov = get("", syms, false, false, false);
+                //std::cout << "---> " << ov->print() << std::endl;
+                bool is_ref = false;
+                if(dynamic_cast<Ref*>(ov)) {
+                    is_ref = true;
+                }
+                delete ov;
+
+                if(dynamic_cast<List*>(v)) {
+                    ////Value* r = new Ref(value); //
+                    if(is_ref) {
+                        //RefTable::change_var((dynamic_cast<Ref*>(ov))->ref, value);
+                        Value* tmp = dynamic_cast<Ref*>(((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->ref;
+                        //
+                        bool found = false;
+                        std::unordered_map<std::string, Value*>::iterator itr;
+                        for(itr = memory.begin(); itr != memory.end(); itr++) {
+                            if(itr->second == tmp) {
+                                memory[itr->first] = value;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(!found) {
+                            Value* tmp_parent = dynamic_cast<Ref*>(((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->parent;
+                            // NEW TODO: Might need to implement the below logic for Dict and wrap the overall code in a different function.
+                            if(dynamic_cast<List*>(tmp_parent)) {
+                                List* tmp_pd = dynamic_cast<List*>(tmp_parent);
+                                for(uint64_t x = 0; x < tmp_pd->items.size(); x++) {
+                                    if(tmp_pd->items[x] == tmp) {
+                                        tmp_pd->items[x] = value;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        //
+                        dynamic_cast<Ref*>(((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->ref = value;
+                        //RefTable::change_var( (dynamic_cast<Ref*>((dynamic_cast<List*>(v))->items[std::stoi(last_symbol)]))->ref, value );
+                        RefTable::change_var(tmp, value);
+                        delete tmp;
+                    }
+                    else {
+                        Value* prev_val = (dynamic_cast<List*>(v))->items[std::stoi(last_symbol)];
+                        //delete (dynamic_cast<List*>(v))->items[std::stoi(last_symbol)];
+                        (dynamic_cast<List*>(v))->items[std::stoi(last_symbol)] = value;
+                        RefTable::change_var(prev_val, value);
+                        // maybe this line should not exist, but it also prevents the memory leak from happening... investigate more.
+                        // this line cause segfaults (as it should for other cases.)
+                        delete prev_val;
+                    }
+                }
+                else if(dynamic_cast<Dict*>(v)) {
+                    // TODO: Write code for replacing when item is Ref as done above in List.
+                    if(is_ref) {
+                        Value* tmp = dynamic_cast<Ref*>((dynamic_cast<Dict*>(v))->dict[last_symbol])->ref;
+                        bool found = false;
+                        std::unordered_map<std::string, Value*>::iterator itr;
+                        for(itr = memory.begin(); itr != memory.end(); itr++) {
+                            if(itr->second == tmp) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(!found) {
+                            Value* tmp_parent = dynamic_cast<Ref*>((dynamic_cast<Dict*>(v))->dict[last_symbol])->parent;
+                            // NEW TODO: Might need to implement the below logic for Dict and wrap the overall code in a different function.
+                            if(dynamic_cast<List*>(tmp_parent)) {
+                                List* tmp_pd = dynamic_cast<List*>(tmp_parent);
+                                for(uint64_t x = 0; x < tmp_pd->items.size(); x++) {
+                                    if(tmp_pd->items[x] == tmp) {
+                                        tmp_pd->items[x] = value;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        dynamic_cast<Ref*>((dynamic_cast<Dict*>(v))->dict[last_symbol])->ref = value;
+                        RefTable::change_var(tmp, value);
+                        delete tmp;
+                    }
+                    else {
+                        // add change_ref() logic here.
+                        last_symbol = lib::resolve_string(last_symbol);
+                        delete (dynamic_cast<Dict*>(v))->dict[last_symbol];
+                        (dynamic_cast<Dict*>(v))->dict[last_symbol] = value;
+                        (dynamic_cast<Dict*>(v))->append_unique(last_symbol);
+                    }
+                }
+            }
+            ///
+            RefTable::add(value);
+            if(dynamic_cast<Ref*>(value)) {
+                RefTable::add((dynamic_cast<Ref*>(value))->ref);
+                RefTable::add_ref((dynamic_cast<Ref*>(value)->ref), dynamic_cast<Ref*>(value));
+            }
+            ///
+        }
+        else {
+            if(memory[var] != nullptr) {
+                delete memory[var];
+            }
+            memory[var] = value;
+            ///
+            RefTable::add(value);
+            if(dynamic_cast<Ref*>(value)) {
+                RefTable::add((dynamic_cast<Ref*>(value))->ref);
+                RefTable::add_ref((dynamic_cast<Ref*>(value)->ref), dynamic_cast<Ref*>(value));
+            }
+            ///
+        }
+    }
+
+    std::string print(std::string var) {
+        Value* v = get(var, {}, true, true);
+        std::cout << v->print() << std::endl;
+        return v->print();
+    }
+};
