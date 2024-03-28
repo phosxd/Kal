@@ -72,6 +72,7 @@ function docker_run() {
     docker run -it --rm --name Kal kal
 }
 
+rm -f core.*
 
 if [ -z "$1" ]; then
     get_help

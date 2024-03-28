@@ -135,7 +135,7 @@ Null::~Null() {}
 ///
 
 /// Number
-Number::Number(std::string Val) : val(Val) {}
+Number::Number(std::string Val) : val(eval(Val)) {}
 std::string Number::print() {
     return val;
 }
@@ -717,7 +717,7 @@ namespace VarTable {
 
     std::string print(std::string var) {
         Value* v = get(var, {}, true, true);
-        std::cout << v->print() << std::endl;
+        //std::cout << v->print() << std::endl;
         return v->print();
     }
 };
