@@ -154,7 +154,7 @@ void test_var() {
     check(found_string, actual_string);
 
     // Tests for dictionary item to dictionary item assigment.
-    // Will write later when the eval isse is solved.
+    // Will write later when the eval issue is solved.
     VarTable::gc();
 
     // Tests for references.
@@ -175,6 +175,41 @@ void test_var() {
     actual_value = 300;
     found_value = std::stod(VarTable::print("$value"));
     check(found_value, actual_value);
+
+    VarTable::set("x", "2");
+    VarTable::set("y", "$&x");
+    VarTable::set("data", "[1, $y, 3]");
+    actual_string = "[1, 2, 3]";
+    found_string = VarTable::print("$data");
+    check(found_string, actual_string);
+
+    VarTable::set("third", "$&data[2]");
+    VarTable::set("$third", "300");
+    actual_string = "[1, 2, 300]";
+    found_string = VarTable::print("$data");
+    check(found_string, actual_string);
+
+    VarTable::set("list", "[5, 10, 15]");
+    VarTable::set("ref_list", "$&list");
+    VarTable::set("$ref_list[1]", "50");
+    actual_string = "[5, 50, 15]";
+    found_string = VarTable::print("$list");
+    check(found_string, actual_string);
+
+    VarTable::set("$list[2]", "500");
+    actual_string = "[5, 50, 500]";
+    found_string = VarTable::print("$ref_list");
+    check(found_string, actual_string);
+
+    VarTable::set("infoA", "[1, 3, 6]");
+    VarTable::set("infoB", "[$&infoA[2], 7, 9]");
+    VarTable::set("$infoB[0]", "5");
+    actual_string = "[1, 3, 5]";
+    found_string = VarTable::print("$infoA");
+    check(found_string, actual_string);
+    actual_string = "[5, 7, 9]";
+    found_string = VarTable::print("$infoB");
+    check(found_string, actual_string);
 
     progress();
 

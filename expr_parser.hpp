@@ -374,6 +374,12 @@ std::string eval(std::string expr) {
     std::cout << "\n";
     exit(1);*/
 
+    if(rpn.size() == 1) {
+        result = lib::trim_num(rpn.front());
+        rpn.pop();
+        return result;
+    }
+
     while(!rpn.empty()) {
         token = rpn.front();
         rpn.pop();
