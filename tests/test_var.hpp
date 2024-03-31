@@ -211,6 +211,18 @@ void test_var() {
     found_string = VarTable::print("$infoB");
     check(found_string, actual_string);
 
+    VarTable::set("matrix", "[[1, 2, 3], [4, 5, 6], [7, 8, 9]]");
+    VarTable::set("duplicate_matrix", "[[1, [$&matrix[0][1]], 3], [4, [$&matrix[1][1]], 6], [7, [$&matrix[2][1]], 9]]");
+    VarTable::set("$duplicate_matrix[0][1][0]", "100");
+    VarTable::set("$duplicate_matrix[1][1][0]", "200");
+    VarTable::set("$duplicate_matrix[2][1][0]", "300");
+    actual_string = "[[1, [100], 3], [4, [200], 6], [7, [300], 9]]";
+    found_string = VarTable::print("$duplicate_matrix");
+    check(found_string, actual_string);
+    actual_string = "[[1, 100, 3], [4, 200, 6], [7, 300, 9]]";
+    found_string = VarTable::print("$matrix");
+    check(found_string, actual_string);
+
     progress();
 
     // Test for performing Garbage Collection (GC).
