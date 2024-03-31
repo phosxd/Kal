@@ -223,6 +223,27 @@ void test_var() {
     found_string = VarTable::print("$matrix");
     check(found_string, actual_string);
 
+    VarTable::set("data", "#(name -> \"Superman\")");
+    VarTable::set("name", "$&data[\"name\"]");
+    VarTable::set("$name", "\"Clark\"");
+    actual_string = "#(name -> \"Clark\")";
+    found_string = VarTable::print("$data");
+    check(found_string, actual_string);
+
+    VarTable::set("full_name", "#(name -> [\"Clark\", \"Kent\"])");
+    VarTable::set("first_name", "$&full_name[\"name\"][0]");
+    VarTable::set("$first_name", "\"Jon\"");
+    actual_string = "#(name -> [\"Jon\", \"Kent\"])";
+    found_string = VarTable::print("$full_name");
+    check(found_string, actual_string);
+
+    VarTable::set("info", "#(alias -> \"Superman\", name -> #(first -> \"xyz\", last -> \"Kent\"))");
+    VarTable::set("ref_name", "$&info[\"name\"][\"first\"]");
+    VarTable::set("$ref_name", "\"Clark\"");
+    actual_string = "#(first -> \"Clark\", last -> \"Kent\")";
+    found_string = VarTable::print("$info[\"name\"]");
+    check(found_string, actual_string);
+
     progress();
 
     // Test for performing Garbage Collection (GC).
