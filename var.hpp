@@ -514,12 +514,28 @@ namespace VarTable {
             // TODO: the same for Strings.
             // TODO: the impl is done for literals, add resolve code for vars and refs.
             Value* ptr = VarTable::get(var, {}, true, true);
+            if(data[0] == '$') {
+                Value* d_ptr = VarTable::get(data, {}, true, true);
+                if(dynamic_cast<Ref*>(d_ptr)) {
+                    d_ptr = (dynamic_cast<Ref*>(d_ptr))->ref;
+                }
+                if(dynamic_cast<Number*>(d_ptr)) {
+                    data = (dynamic_cast<Number*>(d_ptr))->val;
+                }
+                else if(dynamic_cast<String*>(d_ptr)) {
+                    data = std::string((dynamic_cast<String*>(d_ptr))->str);
+                }
+            }
             if(dynamic_cast<Ref*>(ptr)) {
                 ptr = (dynamic_cast<Ref*>(ptr))->ref;
             }
             if(dynamic_cast<Number*>(ptr)) {
                 (dynamic_cast<Number*>(ptr))->val = data; //(dynamic_cast<Number*>(value))->val;
                 //delete value;
+                return;
+            }
+            else if(dynamic_cast<String*>(ptr)) {
+                strcpy((dynamic_cast<String*>(ptr))->str, data.c_str());
                 return;
             }
         }
