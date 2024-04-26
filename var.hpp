@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <unordered_map>
@@ -18,6 +20,11 @@ std::vector<std::string> parse_map(std::string text, int& index) {
     std::vector<std::string> vals = parser::parse_init(contents, pos, true);
     return vals;
 }
+
+enum Type {
+    VAR,
+    INERT
+};
 
 /*
 
@@ -137,7 +144,7 @@ Null::~Null() {}
 /// Number
 // maybe remove that eval.
 // eval will be done at the parser level.
-Number::Number(std::string Val) : val(eval(Val)) {}
+Number::Number(std::string Val) : val(Val) {}
 std::string Number::print() {
     return val;
 }
@@ -409,7 +416,14 @@ namespace RefTable {
     }
 }
 
+namespace InertTable {
+    std::unordered_map<std::string, std::string> vars = {};
+    std::unordered_map<std::string, bool> is_hit = {};
+};
+
 namespace VarTable {
+    void set(std::string, std::string, Type type = VAR);
+
     void gc() {
         std::unordered_map<std::string, Value*>::iterator itr;
         for(itr = memory.begin(); itr != memory.end(); itr++) {
@@ -421,6 +435,14 @@ namespace VarTable {
     }
 
     Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original) {
+        // eval the inert var when it's used.
+        if(InertTable::vars[name.substr(1)] != "" && !InertTable::is_hit[name.substr(1)]) {
+            std::string Name = name.substr(1);
+            std::cout << "adding: " << Name << " value: " << InertTable::vars[Name] << std::endl;
+            set(Name, InertTable::vars[Name]);
+            InertTable::is_hit[Name] = true;
+        }
+        //
         if(symbols.size() == 0) {
             symbols = get_var_with_indices(name);
         }
@@ -509,10 +531,20 @@ namespace VarTable {
         return var;
     }
 
-    void set(std::string var, std::string data) {
+    void set(std::string var, std::string data, Type type) {
+        //std::cout << "raw: " << data << std::endl;
+        if(type == INERT) {
+            std::cout << "to_inert: " << var << " = " << data << "\n";
+            InertTable::vars[var] = data;
+            InertTable::is_hit[var] = false;
+            return;
+            // Need to modify eval to get var reading complete.
+        }
+        data = eval(data);
+        //std::cout << "eval: " << data << std::endl;
         if(var[0] == '$') {
-            // TODO: the same for Strings.
-            // TODO: the impl is done for literals, add resolve code for vars and refs.
+            // TODO: the same for Strings. (DONE)
+            // TODO: the impl is done for literals, add resolve code for vars and refs. (DONE)
             Value* ptr = VarTable::get(var, {}, true, true);
             if(data[0] == '$') {
                 Value* d_ptr = VarTable::get(data, {}, true, true);
