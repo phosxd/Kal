@@ -436,9 +436,9 @@ namespace VarTable {
 
     Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original) {
         // eval the inert var when it's used.
-        if(InertTable::vars[name.substr(1)] != "" && !InertTable::is_hit[name.substr(1)]) {
+        if(name != "" && InertTable::vars[name.substr(1)] != "" && !InertTable::is_hit[name.substr(1)]) {
             std::string Name = name.substr(1);
-            std::cout << "adding: " << Name << " value: " << InertTable::vars[Name] << std::endl;
+            //std::cout << "adding: " << Name << " value: " << InertTable::vars[Name] << std::endl;
             set(Name, InertTable::vars[Name]);
             InertTable::is_hit[Name] = true;
         }
@@ -534,7 +534,7 @@ namespace VarTable {
     void set(std::string var, std::string data, Type type) {
         //std::cout << "raw: " << data << std::endl;
         if(type == INERT) {
-            std::cout << "to_inert: " << var << " = " << data << "\n";
+            //std::cout << "to_inert: " << var << " = " << data << "\n";
             InertTable::vars[var] = data;
             InertTable::is_hit[var] = false;
             return;
