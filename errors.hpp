@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <vector>
+#include <cstdint>
 
 #include "lib/lib_style.hpp"
 

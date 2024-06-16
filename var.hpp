@@ -531,8 +531,53 @@ namespace VarTable {
         return var;
     }
 
+    void unpack(std::string list, std::string structure) {
+        int index = 0;
+        Value* packed_items = nullptr;
+        bool is_literal = false;
+        std::vector<std::string> items = parser::parse_list(list, index);
+        int len = items.size();
+        if(structure[0] == '$') {
+            packed_items = get(structure, {}, true, true);
+        }
+        else {
+            packed_items = new List(structure);
+            is_literal = true;
+        }
+
+        if(len > (dynamic_cast<List*>(packed_items))->items.size()) {
+            // add proper error msg here.
+            std::cout << (dynamic_cast<List*>(packed_items))->items.size() << std::endl;
+            std::cerr << "more than enough items to unpack" << std::endl;
+            if(is_literal) {
+                delete packed_items;
+            }
+            return;
+        }
+
+        for(int i = 0; i < len; i++) {
+            if(items[i] == "_") {
+                continue;
+            }
+            if(items[i][0] == '[') {
+                unpack(items[i], (dynamic_cast<List*>(packed_items)->items[i])->print());
+            }
+            else {
+                set(items[i], (dynamic_cast<List*>(packed_items)->items[i])->print());
+            }
+        }
+
+        if(is_literal) {
+            delete packed_items;
+        }
+    }
+
     void set(std::string var, std::string data, Type type) {
         //std::cout << "raw: " << data << std::endl;
+        if(var[0] == '[') {
+            unpack(var, data);
+            return;
+        }
         if(type == INERT) {
             //std::cout << "to_inert: " << var << " = " << data << "\n";
             InertTable::vars[var] = data;
