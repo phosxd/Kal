@@ -535,7 +535,18 @@ namespace VarTable {
         int index = 0;
         Value* packed_items = nullptr;
         bool is_literal = false;
+        // parse the list like dict here.
+        //std::vector<std::string> items;
+        if(list[0] == '#' && list[1] == '(') {
+            int end = list.size();
+            //list[0] = ' ';
+            list[1] = '[';
+            list[end - 1] = ']';
+            index++;
+        }
+        //std::cout << "literal: " << list << std::endl;
         std::vector<std::string> items = parser::parse_list(list, index);
+        //
         uint64_t len = items.size();
         if(structure != "" && data_ptr == nullptr) {
             if(structure[0] == '$') {
@@ -569,7 +580,7 @@ namespace VarTable {
                 if(items[i] == "_") {
                     continue;
                 }
-                if(items[i][0] == '[') {
+                if(items[i][0] == '[' || (items[i][0] == '#' && items[i][1] == '(')) {
                     unpack(items[i], "", dynamic_cast<List*>(packed_items)->items[i]);
                 }
                 else {
@@ -604,7 +615,7 @@ namespace VarTable {
 
     void set(std::string var, std::string data, Value* data_ptr, Type type) {
         //std::cout << "raw: " << data << std::endl;
-        if(var[0] == '[') {
+        if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
             unpack(var, data);
             return;
         }
