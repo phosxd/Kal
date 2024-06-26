@@ -243,6 +243,77 @@ void test_var() {
     actual_string = "#(first -> \"Clark\", last -> \"Kent\")";
     found_string = VarTable::print("$info[\"name\"]");
     check(found_string, actual_string);
+    VarTable::gc();
+
+    // Tests for unpacking / destructuring.
+    // Testing unpacking from Lists.
+    VarTable::set("[a, b, c]", "[1, 2, 3]");
+    actual_string = "1";
+    found_string = VarTable::print("$a");
+    check(found_string, actual_string);
+    actual_string = "2";
+    found_string = VarTable::print("$b");
+    check(found_string, actual_string);
+    actual_string = "3";
+    found_string = VarTable::print("$c");
+    check(found_string, actual_string);
+
+    VarTable::set("[x, y]", "[45, 55, 100]");
+    actual_string = "45";
+    found_string = VarTable::print("$x");
+    check(found_string, actual_string);
+    actual_string = "55";
+    found_string = VarTable::print("$y");
+    check(found_string, actual_string);
+
+    VarTable::set("[p, _, r]", "[\"Hello\", \"There\", \"World\"]");
+    actual_string = "\"Hello\"";
+    found_string = VarTable::print("$p");
+    check(found_string, actual_string);
+    actual_string = "\"World\"";
+    found_string = VarTable::print("$r");
+    check(found_string, actual_string);
+
+    VarTable::set("data", "[3.14, 9.8, 2.71]");
+    VarTable::set("[_, g, e]", "$data");
+    actual_string = "9.8";
+    found_string = VarTable::print("$g");
+    check(found_string, actual_string);
+    found_string = "2.71";
+    actual_string = VarTable::print("$e");
+    check(found_string, actual_string);
+    VarTable::gc();
+
+    // Tests for nested List unpacking.
+    VarTable::set("[a, _, [x, y]]", "[1, 2, [3, 4]]");
+    actual_string = "1";
+    found_string = VarTable::print("$a");
+    check(found_string, actual_string);
+    actual_string = "3";
+    found_string = VarTable::print("$x");
+    check(found_string, actual_string);
+    actual_string = "4";
+    found_string = VarTable::print("$y");
+    check(found_string, actual_string);
+    VarTable::gc();
+    VarTable::set("[_, _, [_, [a, _, b]]]", "[1, 2, [\"Hello\", [25, 100, 75]]]");
+    actual_string = "25";
+    found_string = VarTable::print("$a");
+    check(found_string, actual_string);
+    actual_string = "75";
+    found_string = VarTable::print("$b");
+    check(found_string, actual_string);
+
+    // Tests for swapping two variables using unpacking.
+    VarTable::set("first", "10");
+    VarTable::set("second", "20");
+    VarTable::set("[first, second]", "[$second, $first]");
+    actual_string = "20";
+    found_string = VarTable::print("$first");
+    check(found_string, actual_string);
+    actual_string = "10";
+    found_string = VarTable::print("$second");
+    check(found_string, actual_string);
 
     progress();
 
