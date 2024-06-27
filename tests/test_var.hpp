@@ -314,6 +314,30 @@ void test_var() {
     actual_string = "10";
     found_string = VarTable::print("$second");
     check(found_string, actual_string);
+    VarTable::gc();
+
+    // Tests for unpacking from Dictionaries.
+    VarTable::set("#(name, age)", "#(name -> \"Kal\", age -> 25)");
+    actual_string = "\"Kal\"";
+    found_string = VarTable::print("$name");
+    check(found_string, actual_string);
+
+    VarTable::set("#(b, a)", "#(a -> 10, b -> 20)");
+    actual_string = "10";
+    found_string = VarTable::print("$a");
+    check(found_string, actual_string);
+    actual_string = "20";
+    found_string = VarTable::print("$b");
+    check(found_string, actual_string);
+
+    VarTable::set("data", "#(pi -> 3.14, g -> 9.8, e -> 2.71)");
+    VarTable::set("#(g, pi)", "$data");
+    actual_string = "9.8";
+    found_string = VarTable::print("$g");
+    check(found_string, actual_string);
+    actual_string = "3.14";
+    found_string = VarTable::print("$pi");
+    check(found_string, actual_string);
 
     progress();
 
