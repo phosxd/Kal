@@ -17,7 +17,8 @@ struct Config {
          single_arg     =  false,
          multiple_args  =  false,
          init_list      =  false,
-         target         =  false;
+         target         =  false,
+         tri            =  false;
 };
 
 /*
@@ -64,6 +65,15 @@ Config group_3 = {
     .target = true,
 };
 
+/*
+ * Defines an "if" statement.
+ */
+
+Config group_4 = {
+    .id = "group_4",
+    .tri = true,
+};
+
 namespace p_config {
     Config* get_config(const std::string& cmd) {
         if(cmd == "exit" || cmd == "warn" || cmd == "stdin") {
@@ -74,6 +84,9 @@ namespace p_config {
         }
         else if(cmd == "style" || cmd == "stdout") {
             return &group_3;
+        }
+        else if(cmd == "if" || cmd == "}") {
+            return &group_4;
         }
         else if(cmd[0] == '$') {
             return &group_0;

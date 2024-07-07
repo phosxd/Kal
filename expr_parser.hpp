@@ -177,6 +177,9 @@ std::string fstr(const std::string& text) {
         if(parser::match(i, head, "{}", false) && count < args) {
             fstring += head.substr(begin, i - begin);
             item = eval(values[count + 1]);
+            if(item[0] == '$') {
+                item = VarTable::print(item);
+            }
             if(lib::is_string(item)) {
                 item = lib::resolve_string(item);
             }

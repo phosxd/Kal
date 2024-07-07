@@ -540,6 +540,26 @@ namespace parser {
                 token.init = parse_init(text, index);
                 continue;
             }
+            if(config->tri) {
+                if(text == "}") {
+                    token.head = text;
+                    break;
+                }
+                begin = index;
+                while(!WHITESPACE(text, index) && text[index] != '(') {
+                    index++;
+                }
+                end = index;
+                required_token = text.substr(begin, end - begin);
+                token.head = required_token;
+                if(text[text_size - 1] != '{') {
+                    std::cout << "{ expected\n";
+                    exit(1);
+                }
+                token.values.emplace_back(text.substr(index, text_size - 3));
+                token.values.emplace_back("{");
+                break;
+            }
             if(index == 0) {
                 if(!config->head) {
                     END;

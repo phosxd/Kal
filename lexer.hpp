@@ -23,6 +23,9 @@ namespace lexer {
                 get_head++;
             }
             head = current_line.substr(0, get_head);
+            if(current_line.substr(0, 2) == "if") {
+                head = "if";
+            }
             config = p_config::get_config(head);
             //std::cout << "head: " << head << std::endl;
             Token token = parser::parse(current_line, config);
