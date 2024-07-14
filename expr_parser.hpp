@@ -89,9 +89,10 @@ namespace ops {
                       t_else = ":",
                       left = "(",
                       right = ")",
-                      to_s = "s",
-                      to_f = "f",
-                      to_i = "i";
+                      as = "as",
+                      integer = "int",
+                      floating = "float",
+                      string = "str";
 }
 
 bool match(std::string& text, std::string pattern, int& index) {
@@ -104,7 +105,7 @@ bool match(std::string& text, std::string pattern, int& index) {
 }
 
 int order(std::string op) {
-    if(op == ops::to_s || op == ops::to_f || op == ops::to_i)                    return 15;
+    if(op == ops::as)                                                            return 15;
     else if (op == ops::if_null)                                                 return 14;
     else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 13;
     else if (op == ops::exp)                                                     return 12;
@@ -316,6 +317,21 @@ std::string eval(std::string expr) {
             index++;
             continue;
         }
+        else if(match(expr, ops::integer, index)) {
+            rpn.push(ops::integer);
+            index++;
+            continue;
+        }
+        else if(match(expr, ops::floating, index)) {
+            rpn.push(ops::floating);
+            index++;
+            continue;
+        }
+        else if(match(expr, ops::string, index)) {
+            rpn.push(ops::string);
+            index++;
+            continue;
+        }
         else if(match(expr, ops::left, index)) {
             operators.push(ops::left);
         }
@@ -353,9 +369,7 @@ std::string eval(std::string expr) {
             SET_CURRENT_OP(ops::negative);
             SET_CURRENT_OP(ops::t_if);
             SET_CURRENT_OP(ops::t_else);
-            SET_CURRENT_OP(ops::to_s);
-            SET_CURRENT_OP(ops::to_f);
-            SET_CURRENT_OP(ops::to_i);
+            SET_CURRENT_OP(ops::as);
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
                 rpn.push(operators.top());
@@ -401,7 +415,7 @@ std::string eval(std::string expr) {
         if(!order(token)) {
             numbers.push(token);
         }
-        else if(order(token) == 15) {
+        /*else if(order(token) == 15) {
             std::string ystr = numbers.top();
             numbers.pop();
             if(token == "s") {
@@ -414,7 +428,7 @@ std::string eval(std::string expr) {
                 ystr = to_integer(ystr);
             }
             numbers.push(ystr);
-        }
+        }*/
         else if(order(token) == 13) {
             y = std::stod(numbers.top());
             numbers.pop();
@@ -434,7 +448,20 @@ std::string eval(std::string expr) {
             numbers.pop();
             a = numbers.top();
             numbers.pop();
+            //std::cout << "a: " << a << " b: " << b << " token: " << token << "\n";
 
+            if(token == "as") {
+                if(b == "int") {
+                    numbers.push(to_integer(a));
+                }
+                else if(b == "str") {
+                    numbers.push(to_str(a));
+                }
+                else if(b == "float") {
+                    numbers.push(to_float(a));
+                }
+                continue;
+            }
             if(token == "?" || token == ":") {
                 numbers.push(ternary_op(token, a, b));
                 continue;
