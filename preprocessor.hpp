@@ -13,7 +13,6 @@ namespace preproc {
         int orignal_size = orignal.size();
         for(int orignal_count = 0; orignal_count < orignal_size; orignal_count++) {
             if(orignal_count == index) {
-                std::vector<std::string>::iterator orignal_itr = orignal.begin();
                 if(replace) {
                     orignal[orignal_count] = other[0];
                 }
@@ -24,6 +23,8 @@ namespace preproc {
                 }
 
                 int other_size = other.size();
+                orignal.reserve(orignal.capacity() + (replace ? (other_size - 1) : other_size));
+                std::vector<std::string>::iterator orignal_itr = orignal.begin();
                 for(int other_count = start; other_count < other_size; other_count++) {
                     orignal.insert(orignal_itr + orignal_count + other_count, other[other_count]);
                     orignal_itr = orignal.begin();
