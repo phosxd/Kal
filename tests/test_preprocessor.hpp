@@ -41,8 +41,8 @@ void test_preprocessor() {
     preproc::remove_comments(found);
     check(found, actual);
 
-    text = "var name = \"Kal\", ;; multi line comments work till they reach a line break\n    type = \"Language\"";
-    actual = "var name = \"Kal\",                                                         \n    type = \"Language\"";
+    text = "var name = \"Kal\", ;; single line comments work till they reach a line break\n    type = \"Language\"";
+    actual = "var name = \"Kal\",                                                          \n    type = \"Language\"";
     found = text;
     preproc::remove_comments(found);
     check(found, actual);

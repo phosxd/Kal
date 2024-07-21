@@ -37,11 +37,11 @@ namespace preproc {
     void remove_comments(std::string& line) {
         bool inside_string = false;
         bool enable_removal = false;
-        bool multi_line = false;
+        bool single_line = false;
         int line_size = line.size();
         int char_index = 0;
         while(char_index < line_size) {
-            if(multi_line) {
+            if(single_line) {
                 if(line[char_index] == '\n') {
                     break;
                 }
@@ -53,14 +53,14 @@ namespace preproc {
                 inside_string = !inside_string;
             }
             if(line[char_index] == ';' && line[char_index + 1] == ';' && !inside_string) {
-                multi_line = true;
+                single_line = true;
                 continue;
             }
             else if(line[char_index] == ';' && !inside_string) {
                 line[char_index] = ' ';
                 enable_removal = !enable_removal;
             }
-            if(enable_removal && !multi_line) {
+            if(enable_removal && !single_line) {
                 line[char_index] = ' ';
             }
             char_index++;
