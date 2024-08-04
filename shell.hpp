@@ -74,8 +74,11 @@ namespace shell {
                 continue;
             }
 
-            std::vector<std::string> shell_command = { command };
-            tokens = lexer::tokenize(shell_command);
+            std::vector<std::string> shell_lines = lib::new_split(command);
+            for(std::string& each : shell_lines) {
+                prep_for_shell(each);
+            }
+            tokens = lexer::tokenize(shell_lines);
             line_exec(tokens);
 
             count++;

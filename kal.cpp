@@ -81,17 +81,10 @@ int main(int argc, char** argv) {
 
     source_lines = preproc::preprocess(file_name);
 
-
     if(arg_parser.flag_exists("-d")) {
         std::string deps = arg_parser.get_value("-d");
         preproc::expand_deps(source_lines, deps);
     }
-
-    int source_lines_count = source_lines.size();
-    for(int each_line = 0; each_line < source_lines_count; each_line++) {
-        lib::expand_tabs(source_lines[each_line]);
-    }
-
     
     std::vector<Token> tokens = lexer::tokenize(source_lines);
     line_exec(tokens);
