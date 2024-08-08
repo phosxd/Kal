@@ -4,6 +4,9 @@
 
 #include "../var.hpp"
 
+void write_dict(std::ofstream&, Value*&);
+void read_dict(std::ifstream&, Value*&);
+
 enum DataType {
     Atom,
     Lst,
@@ -43,13 +46,15 @@ void read_atom(std::ifstream& bin, std::string& atom) {
     delete[] buffer;
 }
 
-void write_list(std::ofstream& bin, Value* data) {
+void write_list(std::ofstream& bin, Value*& data) {
     List* list = dynamic_cast<List*>(data);
     write_type(bin, Lst);
     write_size(bin, list->items.size());
     for(Value*& each : list->items) {
-        if(dynamic_cast<List*>(each)) {
-            //continue;
+        if(dynamic_cast<Dict*>(each)) {
+            write_dict(bin, each);
+        }
+        else if(dynamic_cast<List*>(each)) {
             write_list(bin, each);
         }
         else if(dynamic_cast<Number*>(each)) {
@@ -84,6 +89,68 @@ void read_list(std::ifstream& bin, Value*& list) {
             read_list(bin, nested_list);
             dynamic_cast<List*>(list)->items.emplace_back(nested_list);
         }
+        else if(type == Dic) {
+            Value* dict;
+            read_dict(bin, dict);
+            dynamic_cast<List*>(list)->items.emplace_back(dict);
+        }
+    }
+}
+
+void write_dict(std::ofstream& bin, Value*& dict) {
+    write_type(bin, Dic);
+    uint64_t size = dynamic_cast<Dict*>(dict)->keys.size();
+    write_size(bin, size);
+    for(std::string& key : dynamic_cast<Dict*>(dict)->keys) {
+        write_atom(bin, key);
+        Value* value = dynamic_cast<Dict*>(dict)->dict[key];
+        if(dynamic_cast<List*>(value)) {
+            write_list(bin, value);
+        }
+        else if(dynamic_cast<Dict*>(value)) {
+            write_dict(bin, value);
+        }
+        else if(dynamic_cast<Number*>(value)) {
+            write_atom(bin, dynamic_cast<Number*>(value)->val);
+        }
+        else if(dynamic_cast<String*>(value)) {
+            write_atom(bin, dynamic_cast<String*>(value)->str);
+        }
+    }
+}
+
+void read_dict(std::ifstream& bin, Value*& dict) {
+    uint64_t size;
+    read_size(bin, size);
+    dict = new Dict();
+    dynamic_cast<Dict*>(dict)->keys.reserve(size);
+    DataType type;
+    while(size--) {
+        read_type(bin, type);
+        std::string key;
+        read_atom(bin, key);
+        dynamic_cast<Dict*>(dict)->keys.emplace_back(key);
+        read_type(bin, type);
+        if(type == Atom) {
+            std::string data;
+            read_atom(bin, data);
+            if(data[0] == '"') {
+                dynamic_cast<Dict*>(dict)->dict[key] = new String(data);
+            }
+            else {
+                dynamic_cast<Dict*>(dict)->dict[key] = new Number(data);
+            }
+        }
+        else if(type == Lst) {
+            Value* list;
+            read_list(bin, list);
+            dynamic_cast<Dict*>(dict)->dict[key] = list;
+        }
+        else if(type == Dic) {
+            Value* nested_dict;
+            read_dict(bin, nested_dict);
+            dynamic_cast<Dict*>(dict)->dict[key] = nested_dict;
+        }
     }
 }
 
@@ -99,6 +166,9 @@ namespace lib {
         else if(dynamic_cast<List*>(value)) {
             write_list(bin, value);
         }
+        else if(dynamic_cast<Dict*>(value)) {
+            write_dict(bin, value);
+        }
     }
 
     void serialize(std::string name, std::string var) {
@@ -109,7 +179,6 @@ namespace lib {
     void deserialize(std::string name, std::string var) {
         std::ifstream bin(name, std::ios::binary);
         DataType type;
-        //std::string data;
         read_type(bin, type);
         if(type == Atom) {
             std::string data;
@@ -121,6 +190,10 @@ namespace lib {
             read_list(bin, list);
             VarTable::set(var, "", list);
         }
-        //VarTable::set(var, data);
+        else if(type == Dic) {
+            Value* dict;
+            read_dict(bin, dict);
+            VarTable::set(var, "", dict);
+        }
     }
 }

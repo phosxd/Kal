@@ -317,7 +317,8 @@ std::string Dict::print() {
             disp << ((Null*)value)->print();
         }
         else {
-            disp << ((Number*)value)->print();
+            std::cout << "invalid pointer\n";
+            exit(0);
         }
 
         if(last == key) {
