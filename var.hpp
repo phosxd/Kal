@@ -881,7 +881,7 @@ namespace VarTable {
     }
 };
 
-std::string pretty_print(std::string var, Value* value = nullptr, uint64_t indent = 0, uint64_t step = 2) {
+std::string pretty_print(std::string var, Value* value = nullptr, uint64_t indent = 0, bool single = true, uint64_t step = 2) {
     std::stringstream text;
     if(value == nullptr) {
         value = VarTable::get(var, {}, true, true);
@@ -894,7 +894,11 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
         text << style::style["yellow"] << dynamic_cast<Number*>(value)->val << style::style["reset"];
     }
     else if(dynamic_cast<String*>(value)) {
-        text << style::style["green"] << dynamic_cast<String*>(value)->str << style::style["reset"];
+        std::string str = dynamic_cast<String*>(value)->str;
+        if(single) {
+            str = str.substr(1, str.size() - 2);
+        }
+        text << style::style["green"] << str << style::style["reset"];
     }
     else if(dynamic_cast<List*>(value)) {
         bool multi_line = false;
@@ -912,7 +916,7 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
                     text << std::string(indent, ' ');
                 }
             }
-            text << pretty_print("", dynamic_cast<List*>(value)->items[each], indent);
+            text << pretty_print("", dynamic_cast<List*>(value)->items[each], indent, false);
             if(each == (size - 1)) {
                 continue;
             }
@@ -936,7 +940,7 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
             text << std::string(indent, ' ')
                     << style::style["bold"] << key << style::style["reset"]
                     << " -> "
-                    << pretty_print("", dynamic_cast<Dict*>(value)->dict[key], indent);
+                    << pretty_print("", dynamic_cast<Dict*>(value)->dict[key], indent, false);
             if(each == (total_keys - 1)) {
                 text << "\n";
                 continue;
