@@ -887,7 +887,10 @@ std::string pretty_print(std::string var, Value* value = nullptr, uint64_t inden
         value = VarTable::get(var, {}, true, true);
     }
 
-    if(dynamic_cast<Number*>(value)) {
+    if(dynamic_cast<Null*>(value)) {
+        text << style::style["red"] << style::style["italic"] << "null" << style::style["reset"];
+    }
+    else if(dynamic_cast<Number*>(value)) {
         text << style::style["yellow"] << dynamic_cast<Number*>(value)->val << style::style["reset"];
     }
     else if(dynamic_cast<String*>(value)) {

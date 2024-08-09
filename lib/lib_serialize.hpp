@@ -10,7 +10,8 @@ void read_dict(std::ifstream&, Value*&);
 enum DataType {
     Atom,
     Lst,
-    Dic
+    Dic,
+    Nul
 };
 
 void write_size(std::ofstream& bin, uint64_t size) {
@@ -46,6 +47,10 @@ void read_atom(std::ifstream& bin, std::string& atom) {
     delete[] buffer;
 }
 
+void write_null(std::ofstream& bin) {
+    write_type(bin, Nul);
+}
+
 void write_list(std::ofstream& bin, Value*& data) {
     List* list = dynamic_cast<List*>(data);
     write_type(bin, Lst);
@@ -62,6 +67,9 @@ void write_list(std::ofstream& bin, Value*& data) {
         }
         else if(dynamic_cast<String*>(each)) {
             write_atom(bin, dynamic_cast<String*>(each)->str);
+        }
+        else if(dynamic_cast<Null*>(each)) {
+            write_null(bin);
         }
     }
 }
@@ -94,6 +102,9 @@ void read_list(std::ifstream& bin, Value*& list) {
             read_dict(bin, dict);
             dynamic_cast<List*>(list)->items.emplace_back(dict);
         }
+        else if(type == Nul) {
+            dynamic_cast<List*>(list)->items.emplace_back(new Null());
+        }
     }
 }
 
@@ -115,6 +126,9 @@ void write_dict(std::ofstream& bin, Value*& dict) {
         }
         else if(dynamic_cast<String*>(value)) {
             write_atom(bin, dynamic_cast<String*>(value)->str);
+        }
+        else if(dynamic_cast<Null*>(value)) {
+            write_null(bin);
         }
     }
 }
@@ -151,11 +165,14 @@ void read_dict(std::ifstream& bin, Value*& dict) {
             read_dict(bin, nested_dict);
             dynamic_cast<Dict*>(dict)->dict[key] = nested_dict;
         }
+        else if(type == Nul) {
+            dynamic_cast<Dict*>(dict)->dict[key] = new Null();
+        }
     }
 }
 
 namespace lib {
-    void serialize(std::string name, Value* value) {
+    void serialize(std::string name, Value*& value) {
         std::ofstream bin(name, std::ios::binary);
         if(dynamic_cast<Number*>(value)) {
             write_atom(bin, dynamic_cast<Number*>(value)->val);
@@ -168,6 +185,9 @@ namespace lib {
         }
         else if(dynamic_cast<Dict*>(value)) {
             write_dict(bin, value);
+        }
+        else if(dynamic_cast<Null*>(value)) {
+            write_null(bin);
         }
     }
 
@@ -194,6 +214,9 @@ namespace lib {
             Value* dict;
             read_dict(bin, dict);
             VarTable::set(var, "", dict);
+        }
+        else if(type == Nul) {
+            VarTable::set(var, "", new Null());
         }
     }
 }
