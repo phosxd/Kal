@@ -209,11 +209,13 @@ namespace lib {
             Value* list;
             read_list(bin, list);
             VarTable::set(var, "", list);
+            delete list;
         }
         else if(type == Dic) {
             Value* dict;
             read_dict(bin, dict);
             VarTable::set(var, "", dict);
+            delete dict;
         }
         else if(type == Nul) {
             VarTable::set(var, "", new Null());
