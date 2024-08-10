@@ -425,7 +425,7 @@ namespace InertTable {
 };
 
 namespace VarTable {
-    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR);
+    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false);
 
     void gc() {
         std::unordered_map<std::string, Value*>::iterator itr;
@@ -616,7 +616,7 @@ namespace VarTable {
         }
     }
 
-    void set(std::string var, std::string data, Value* data_ptr, Type type) {
+    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy) {
         //std::cout << "raw: " << data << std::endl;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
             unpack(var, data);
@@ -652,12 +652,13 @@ namespace VarTable {
             if(dynamic_cast<Ref*>(ptr)) {
                 ptr = (dynamic_cast<Ref*>(ptr))->ref;
             }
-            if(dynamic_cast<Number*>(ptr)) {
+            if(dynamic_cast<Number*>(ptr) && data != "") {
+                // check if the second value is also of the same type. (tbd)
                 (dynamic_cast<Number*>(ptr))->val = data; //(dynamic_cast<Number*>(value))->val;
                 //delete value;
                 return;
             }
-            else if(dynamic_cast<String*>(ptr)) {
+            else if(dynamic_cast<String*>(ptr) && data != "") {
                 strcpy((dynamic_cast<String*>(ptr))->str, data.c_str());
                 return;
             }
@@ -666,9 +667,10 @@ namespace VarTable {
             std::cout << "Cannot use `&` while setting a variable.\n";
             exit(0);
         }
+        
         Value* value = nullptr;
         if(data == "" && data_ptr != nullptr) {
-            value = copy(data_ptr);
+            value = disallow_copy ? data_ptr : copy(data_ptr);
         }
         else if(data[0] >= '0' && data[0] <= '9') {
             value = new Number(data);

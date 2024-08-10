@@ -208,14 +208,14 @@ namespace lib {
         else if(type == Lst) {
             Value* list;
             read_list(bin, list);
-            VarTable::set(var, "", list);
-            delete list;
+            VarTable::set(var, "", list, VAR, true);
+            //delete list;
         }
         else if(type == Dic) {
             Value* dict;
             read_dict(bin, dict);
-            VarTable::set(var, "", dict);
-            delete dict;
+            VarTable::set(var, "", dict, VAR, true);
+            //delete dict;
         }
         else if(type == Nul) {
             VarTable::set(var, "", new Null());
