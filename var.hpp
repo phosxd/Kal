@@ -7,6 +7,7 @@
 #include <sstream>
 #include <algorithm>
 
+#include "types.hpp"
 #include "expr_parser.hpp"
 #include "lib/lib_string.hpp"
 #include "lib/lib_style.hpp"
@@ -52,72 +53,6 @@ TODO: 1. [DONE] Change the VarTable::get() function to get the values via indice
 
 */
 
-class Value {
-    public:
-        std::string type = "";
-        bool is_ref = false;
-        virtual std::string print() = 0;
-        virtual ~Value() {}
-};
-
-class Ref : public Value {
-    public:
-        std::string type = "Ref";
-        Value* ref = nullptr;
-        Value* parent = nullptr;
-        Ref(Value*, Value* = nullptr);
-        std::string print();
-        ~Ref();
-};
-
-class Number : public Value {
-    public:
-        std::string type = "Number";
-        std::string val;
-        Number(std::string);
-        std::string print();
-        ~Number();
-};
-
-class String : public Value {
-    public:
-        char* str;
-        std::string type = "String";
-        String(std::string);
-        std::string print();
-        std::string val();
-        ~String();
-};
-
-class List : public Value {
-    public:
-        std::vector<Value*> items;
-        std::string type = "List";
-        List();
-        List(std::string);
-        std::string print();
-        ~List();
-};
-
-class Dict : public Value {
-    public:
-        std::unordered_map<std::string, Value*> dict;
-        std::string type = "Dict";
-        std::vector<std::string> keys;
-        Dict();
-        Dict(std::string);
-        void append_unique(std::string, bool = false);
-        std::string print();
-        ~Dict();
-};
-
-class Null : public Value {
-    public:
-        std::string type = "Null";
-        Null();
-        std::string print();
-        ~Null();
-};
 
 Value* copy(Value*);
 std::unordered_map<std::string, Value*> memory;
@@ -1004,7 +939,6 @@ bool compare(Value* first, Value* second) {
         if(dynamic_cast<Dict*>(first)->keys.size() != dynamic_cast<Dict*>(second)->keys.size()) {
             return false;
         }
-        int size = dynamic_cast<Dict*>(first)->keys.size();
         std::unordered_map<std::string, Value*>::iterator itr;
         for(itr = dynamic_cast<Dict*>(first)->dict.begin(); itr != dynamic_cast<Dict*>(first)->dict.end(); itr++) {
             Value* each_a = itr->second;
@@ -1037,8 +971,8 @@ bool compare(Value* first, Value* second) {
 }
 
 bool compare(std::string first, std::string second) {
-    Value* a;
-    Value* b;
+    Value* a = nullptr;
+    Value* b = nullptr;
     bool result = true;
     bool a_temp = false, b_temp = false;
     if(first[0] == '$') {
@@ -1071,6 +1005,30 @@ bool compare(std::string first, std::string second) {
         delete a;
     }
     if(b_temp) {
+        delete b;
+    }
+
+    return result;
+}
+
+bool compare(Value* first, std::string second) {
+    Value* b = nullptr;
+    bool temp = false;
+    if(second[0] == '$') {
+        b = VarTable::get(second, {}, true, true);
+    }
+    if(second[0] == '[') {
+        b = new List(second);
+        temp = true;
+    }
+    else if(second[0] == '#' && second[1] == '(') {
+        b = new Dict(second);
+        temp = true;
+    }
+
+    bool result = compare(first, b);
+
+    if(temp) {
         delete b;
     }
 

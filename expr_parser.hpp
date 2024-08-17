@@ -7,6 +7,7 @@
 #include <cmath>
 #include <sstream>
 
+#include "types.hpp"
 #include "parser.hpp"
 #include "errors.hpp"
 #include "lib/lib_math.hpp"
@@ -14,7 +15,9 @@
 
 namespace VarTable {
     std::string print(std::string);
+    Value* get(std::string, std::vector<std::string>, bool, bool, bool);
 }
+bool compare(std::string, std::string);
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
 
@@ -258,6 +261,19 @@ std::string expand_var(std::string var) {
     return variable;
 }
 
+bool is_list_or_dict(std::string structure) {
+    if(structure[0] == '[' || (structure[0] == '#' && structure[1] == '(')) {
+        return true;
+    }
+    if(structure[0] == '$') {
+        Value* temp = VarTable::get(structure, {}, true, true, true);
+        if(dynamic_cast<List*>(temp) || dynamic_cast<Dict*>(temp)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string eval(std::string expr) {
     std::string result;
     std::string current_op = "";
@@ -296,8 +312,8 @@ std::string eval(std::string expr) {
             rpn.push(parser::extract_list(expr, '[', index));
         }
         else if(expr[index] == '#') {
-            // TODO: write code to eval dicts. this is a hacky fix to get past tests (for now).
-            return expr;
+            index++;
+            rpn.push('#' + parser::extract_list(expr, '(', index));
         }
         else if(parser::match(index, expr, "f[", false)) {
             std::string line = parser::extract_fstr(expr, index);
@@ -408,7 +424,11 @@ std::string eval(std::string expr) {
     while(!rpn.empty()) {
         token = rpn.front();
         if(token[0] == '$') {
-            token = VarTable::print(token);
+            // avoid getting the print from list and dict types
+            Value* temp = VarTable::get(token, {}, true, true, true);
+            if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
+                token = VarTable::print(token);
+            }
         }
         rpn.pop();
         //std::cout << "Token: [" << token << "] Order: " << order(token) << std::endl;
@@ -449,6 +469,13 @@ std::string eval(std::string expr) {
             a = numbers.top();
             numbers.pop();
             //std::cout << "a: " << a << " b: " << b << " token: " << token << "\n";
+            if(token == "==") {
+                if(is_list_or_dict(a) || is_list_or_dict(b)) {
+                    bool result = compare(a, b);
+                    numbers.push(result ? "1" : "0");
+                    continue;
+                }
+            }
 
             if(token == "as") {
                 if(b == "int") {
