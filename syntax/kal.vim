@@ -14,10 +14,10 @@ syntax keyword kal_keyword concat
 syntax keyword kal_keyword list push join size unpack range reverse
 
 syntax match kal_preproc "@.*$"
-syntax match kal_comment ";.*$"     contains=kal_todo
 syntax match kal_shebang "#!.*$" 
 
-syntax region kal_string start='"' end='"'
+syntax region kal_string start='"'  end='"'
+syntax region kal_comment start=';' end=';' contains=kal_todo
 
 highlight kal_keyword     ctermfg=cyan
 highlight kal_todo        ctermfg=white    ctermbg=gray    cterm=bold

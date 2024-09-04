@@ -2,20 +2,40 @@
 
 #include <vector>
 #include <utility>
+#include "parser.hpp"
 
 #include "lib/lib_string.hpp"
 
 namespace lexer {
-    std::vector<std::vector<std::string>> tokenize(const std::vector<std::string>& source_lines) {
+    std::vector<Token> tokenize(const std::vector<std::string>& source_lines) {
         int lines = source_lines.size();
-        std::vector<std::vector<std::string>> all_tokens;
+        /*for(auto y : source_lines) {
+            std::cout << y << std::endl;
+        }*/
+        std::string head;
+        Config* config;
+        std::vector<Token> all_tokens;
 
         for(int line = 0; line < lines; line++) {
+            int get_head = 0;
             std::string current_line = source_lines[line];
-            std::vector<std::string> tokens = lib::split(current_line);
-            all_tokens.emplace_back(tokens);
+            while(current_line[get_head] != ' ' && current_line[get_head] != '\t' && current_line[get_head] != '\n') {
+                get_head++;
+            }
+            head = current_line.substr(0, get_head);
+            if(current_line.substr(0, 2) == "if") {
+                head = "if";
+            }
+            config = p_config::get_config(head);
+            //std::cout << "head: " << head << std::endl;
+            Token token = parser::parse(current_line, config);
+            // std::vector<std::string> tokens = lib::split(current_line);
+            /*for(auto x : tokens) {
+                std::cout << "[" << x << "]" << std::endl;
+            }*/
+            all_tokens.emplace_back(token);
         }
-
+        //exit(1);
         return all_tokens;
     }
 
@@ -42,6 +62,9 @@ namespace lexer {
         }
 
         var_data = {var_type, var_name, var_val};
+        /*for(std::string x : var_data) {
+            std::cout << "[" << x << "]" << std::endl;
+        }*/
         return var_data;
     }
 

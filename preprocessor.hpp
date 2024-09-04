@@ -1,18 +1,31 @@
 #pragma once
 
+#include <cstdlib>
+#include <vector>
+#include <stack>
+
 #include "errors.hpp"
+#include "lib/lib_path.hpp"
 #include "lib/lib_string.hpp"
 
 namespace preproc {
-    void squash_vector(std::vector<std::string>& orignal, const std::vector<std::string>& other, int index) {
+    void squash_vector(std::vector<std::string>& orignal, const std::vector<std::string>& other, int index, bool replace = true) {
         int orignal_size = orignal.size();
         for(int orignal_count = 0; orignal_count < orignal_size; orignal_count++) {
             if(orignal_count == index) {
-                std::vector<std::string>::iterator orignal_itr = orignal.begin();
-                orignal[orignal_count] = other[0];
+                if(replace) {
+                    orignal[orignal_count] = other[0];
+                }
+
+                int start = 0;
+                if(replace) {
+                    start = 1;
+                }
 
                 int other_size = other.size();
-                for(int other_count = 1; other_count < other_size; other_count++) {
+                orignal.reserve(orignal.capacity() + (replace ? (other_size - 1) : other_size));
+                std::vector<std::string>::iterator orignal_itr = orignal.begin();
+                for(int other_count = start; other_count < other_size; other_count++) {
                     orignal.insert(orignal_itr + orignal_count + other_count, other[other_count]);
                     orignal_itr = orignal.begin();
                 }
@@ -21,26 +34,30 @@ namespace preproc {
         }
     }
 
-    std::string remove_comments(const std::string& line) {
-        if(line == "" || line == ";" || line[0] == ';') {
-            return "";
-        }
-
-        bool enable_removal = true;
-        int required_len = 0;
+    void remove_comments(std::string& line) {
+        bool inside_string = false;
+        bool enable_removal = false;
         int line_size = line.size();
-        for(int char_index = 0; char_index < line_size; char_index++) {
+        int char_index = 0;
+        while(char_index < line_size) {
             if(line[char_index] == '"') {
+                inside_string = !inside_string;
+            }
+            if(line[char_index] == ';' && line[char_index + 1] == ';' && !inside_string) {
+                while(char_index < line_size && line[char_index] != '\n') {
+                    line[char_index] = ' ';
+                    char_index++;
+                }
+            }
+            else if(line[char_index] == ';' && !inside_string) {
+                line[char_index] = ' ';
                 enable_removal = !enable_removal;
             }
-            if((line[char_index] == ';') && enable_removal) {
-                break;
+            if(enable_removal) {
+                line[char_index] = ' ';
             }
-            required_len++;
+            char_index++;
         }
-        
-        std::string useful_string = line.substr(0, required_len);
-        return useful_string;
     }
 
     void adjust_strings(std::string& line, char delimiter = ' ') {
@@ -72,55 +89,86 @@ namespace preproc {
         }
     }
 
-    std::vector<std::string> clean_contents(std::vector<std::string>& line_contents) {
-        std::vector<std::string> cleaned_contents;
-        int line_contents_size = line_contents.size();
+    void check_path(std::vector<std::string>& paths, std::string path) {
+        uint64_t size = paths.size();
+        if(path == paths[size - 1]) {
+            std::cerr << paths[size - 1] << " included in itself\n"; exit(1);
+        }
+        for(std::string each : paths) {
+            if(each == path) {
+                std::cerr << each << " already included\n"; exit(1);
+            } 
+        }
+    }
 
-        for(int line_itr = 0; line_itr < line_contents_size; line_itr++) {
-            line_contents[line_itr] = remove_comments(line_contents[line_itr]);
-            line_contents[line_itr] = lib::trim_leading(line_contents[line_itr]);
-            line_contents[line_itr] = lib::trim_trailing(line_contents[line_itr]);
-            adjust_strings(line_contents[line_itr]);
 
-            if(line_contents[line_itr] != "") {
-                cleaned_contents.emplace_back(line_contents[line_itr]);
+    std::stack<std::string> dirs;
+    std::vector<std::string> paths;
+    std::vector<std::string> preprocess(std::string file_path) {
+        std::vector<std::string> all_lines;
+        std::string top = "";
+        if(!dirs.empty()) {
+            top = dirs.top();
+        }
+        std::string abs_file_path = lib::get_path(file_path, top);
+        std::string current_path = lib::get_dir(abs_file_path);
+
+        std::string file_contents = lib::read_file(abs_file_path);
+        remove_comments(file_contents);
+
+        std::vector<std::string> file_lines = lib::new_split(file_contents);
+        paths.emplace_back(abs_file_path);
+        for(std::string& line : file_lines) {
+            line = lib::trim_leading(lib::trim_trailing(line));
+            if(line != "") {
+                all_lines.emplace_back(line);
+            }
+
+            if(line[0] == '@') {
+                std::string include_path = line.substr(1);
+                lib::ensure_extension(include_path, ".kal");
+                dirs.push(current_path);
+                abs_file_path = include_path;
+                check_path(paths, lib::get_path(abs_file_path));
+                std::vector<std::string> vals = preprocess(abs_file_path);
+                squash_vector(all_lines, vals, all_lines.size() - 1);
+                current_path = dirs.top();
+                dirs.pop();
             }
         }
 
-        return cleaned_contents;
+        return all_lines;
     }
 
-    std::vector<std::string> initial_preprocessing(std::string initial_file_path) {
-        std::string initial_file_contents = lib::read_file(initial_file_path, true);
-        std::vector<std::string> initial_file_lines = lib::split(initial_file_contents, '\n');
-        std::vector<std::string> initial_cleaned_file_lines = clean_contents(initial_file_lines);
-        return initial_cleaned_file_lines;
-    }
 
-    void expand_files(std::vector<std::string>& expanded_contents, std::vector<std::string>& included_file_list, std::string& current_file_path) {
-        int clean_contents_size = expanded_contents.size();
-        for(int content_itr = 0; content_itr < clean_contents_size; content_itr++) {
-            if(expanded_contents[content_itr][0] == '@') {
-                std::string include_file_path = expanded_contents[content_itr].substr(1);
-                if(lib::exists_in_vector(included_file_list, include_file_path)) {
-                    errors::file_already_included_error(include_file_path);
-                }
-                if(include_file_path == current_file_path) {
-                    errors::file_included_in_itself_error(include_file_path);
-                }
-                current_file_path = include_file_path;
-                included_file_list.emplace_back(include_file_path);
+    void expand_deps(std::vector<std::string>& expanded_contents, std::string deps_str) {
+        std::vector<std::string> deps;
+        int size = deps_str.size();
+        int index = size;
+        int begin = size;
 
-                std::vector<std::string> included_cleaned_source_lines = initial_preprocessing(include_file_path);
-                squash_vector(expanded_contents, included_cleaned_source_lines, content_itr);
+        std::string required_dep = "";
+        if(deps_str[0] != ',') {
+            deps_str = ',' + deps_str;
+            size++;
+        }
+
+        while(index >= 0) {
+            if(deps_str[index] == ',') {
+                required_dep = deps_str.substr(index + 1, begin - index + 1);
+                if(required_dep != "") {
+                    required_dep = lib::trim_leading(lib::trim_trailing(required_dep));
+                    deps.emplace_back(required_dep);
+                }
+                begin = index - 2;
             }
+            index--;
         }
+        for(std::string dep : deps) {
+            std::vector<std::string> sloc = preprocess(dep);
+            squash_vector(expanded_contents, sloc, 0, false);
+        }
+
     }
 
-    void preprocess(std::vector<std::string>& processed_contents, std::string& current_file_path) {
-        std::vector<std::string> included_file_list;
-        for(uint64_t line_count = 0; line_count < processed_contents.size(); line_count++) {
-            expand_files(processed_contents, included_file_list, current_file_path);
-        }
-    }
 }

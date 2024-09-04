@@ -9,7 +9,20 @@ CC="g++"
 SRC_FILE="kal.cpp"
 BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
 OPTIMIZATION="-O2"
-FLAGS="-s -pipe -static -pedantic -Wall -Wextra -Werror"
+STD="-std=c++20"
+
+STATIC_ELF=""
+if [ -z $STATIC ]; then
+    STATIC=0
+fi
+if [ $STATIC -eq 1 ]; then
+    STATIC_ELF="-static"
+fi
+
+FLAGS="-s -pipe $(echo $STATIC_ELF) -pedantic -Wall -Wextra -Werror"
+
+TEST_SRC_FILE="tests/kal_test.cpp"
+TEST_BIN_FILE="bin/kal_test"
 
 SU="sudo"
 [ $(whoami) == "root" ] && SU=""
@@ -22,10 +35,26 @@ function get_help() {
     echo -e "    ${GREEN}│                                                         │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh install      ${GREEN}Compiles and Installs Kal.      │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh compile      ${GREEN}Compiles Kal.                   │"
+    echo -e "    │ ${DEFAULT_BOLD}./build.sh test         ${GREEN}Runs Tests.                     │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh docker       ${GREEN}Runs Docker container for Kal.  │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh help         ${GREEN}Displays this help message.     │"
     echo -e "    │                                                         │"
     echo -e "    └─────────────────────────────────────────────────────────┘${DEFAULT}\n"
+}
+
+
+function run_tests() {
+    echo -e "${GREEN} * Compiling Kal Tests${DEFAULT}"
+    ! [ -d bin ] && mkdir bin
+    ${CC} ${OPTIMIZATION} ${STD} ${FLAGS} ${TEST_SRC_FILE} -o ${TEST_BIN_FILE} && 
+        echo -e "${GREEN} * Running Kal Tests${DEFAULT}" &&
+        ${TEST_BIN_FILE}
+}
+
+function compile() {
+    echo -e "${GREEN} * Compiling Kal${DEFAULT}"
+    ! [ -d bin ] && mkdir bin
+    ${CC} ${OPTIMIZATION} ${STD} ${FLAGS} ${SRC_FILE} -o ${BIN_FILE}
 }
 
 function vim_ft() {
@@ -36,12 +65,6 @@ function vim_ft() {
     ft_exists=$(grep "kal" ~/.vimrc)
     [ -z "$ft_exists" ] && echo -e "\nsyntax on | au BufRead,BufNewFile *.kal set filetype=kal number autoindent noswapfile hlsearch incsearch tabstop=4 shiftwidth=4 expandtab clipboard=unnamedplus" >> ~/.vimrc
     return 0
-}
-
-function compile() {
-    echo -e "${GREEN} * Compiling Kal${DEFAULT}"
-    ! [ -d bin ] && mkdir bin
-    ${CC} ${OPTIMIZATION} ${FLAGS} ${SRC_FILE} -o ${BIN_FILE}
 }
 
 function install() {
@@ -58,6 +81,8 @@ function docker_run() {
     docker run -it --rm --name Kal kal
 }
 
+rm -f core.*
+
 if [ -z "$1" ]; then
     get_help
 elif [ "$1" == "docker" ]; then
@@ -66,6 +91,8 @@ elif [ "$1" == "compile" ]; then
     compile
 elif [ "$1" == "install" ]; then
     install
+elif [ "$1" == "test" ]; then
+    run_tests
 else
     get_help
 fi

@@ -1,19 +1,23 @@
 #include <iostream>
+#include <cstdlib>
 
 #include "shell.hpp"
-#include "parser.hpp"
+#include "exec.hpp"
+#include "kast.hpp"
 #include "errors.hpp"
-#include "variable.hpp"
+#include "var.hpp"
 #include "arg_parser.hpp"
 #include "preprocessor.hpp"
+#include "lib/lib_path.hpp"
 #include "lib/lib_string.hpp"
 
 int main(int argc, char** argv) {
     ArgParser arg_parser = ArgParser(argc, argv);
-    VarTable var = VarTable();
+    //VarTable var = VarTable();
 
     if(argc == 1) {
         shell::init_shell();
+        //std::cout << "shell" << std::endl;
         return 0;
     }
     if(arg_parser.args_size() == 0) {
@@ -22,17 +26,11 @@ int main(int argc, char** argv) {
     }
 
     std::vector<std::string> args = arg_parser.get_args();
-    std::string file_name = args[0];
-
-    std::vector<std::string> source_lines = preproc::initial_preprocessing(file_name);
-    preproc::preprocess(source_lines, file_name);
-
-    int source_lines_count = source_lines.size();
-    for(int each_line = 0; each_line < source_lines_count; each_line++) {
-        lib::expand_tabs(source_lines[each_line]);
-    }
-
+    std::string file_name;
+    std::vector<std::string> source_lines;
     if(arg_parser.flag_exists("-p")) {
+        file_name = arg_parser.get_value("-p");
+        source_lines = preproc::preprocess(file_name);
 
         if(arg_parser.flag_exists("-o")) {
             std::string write_path = arg_parser.get_value("-o");
@@ -47,9 +45,51 @@ int main(int argc, char** argv) {
         }
         return 0;
     }
+
+    if(arg_parser.flag_exists("-k")) {
+        std::string kast_file;
+        std::string kal_file = arg_parser.get_value("-k");
+        source_lines = preproc::preprocess(kal_file);
+        std::vector<Token> tokens = lexer::tokenize(source_lines);
+        if(arg_parser.flag_exists("-o")) {
+            kast_file = arg_parser.get_value("-o");
+            lib::ensure_extension(kast_file, ".kast");
+        }
+        else {
+            kast_file = lib::replace_extension(kal_file, ".kast");
+        }
+        kast::encode(kast_file, tokens);
+
+        return 0;
+    }
+
+    file_name = args[1];
+
+    memory["ARGS"] = new List();
+    (dynamic_cast<List*>(memory["ARGS"]))->items.reserve(args.size());
+    for(std::string& arg : args) {
+        (dynamic_cast<List*>(memory["ARGS"]))->items.emplace_back(new String('"' + arg + '"'));
+    }
+
+    bool is_kast_file = file_name.substr(file_name.size() - 5) == ".kast";
+    if(is_kast_file) {
+        std::vector<Token> tokens;
+        kast::decode(file_name, tokens);
+        line_exec(tokens);
+        return 0;
+    }
+
+    source_lines = preproc::preprocess(file_name);
+
+    if(arg_parser.flag_exists("-d")) {
+        std::string deps = arg_parser.get_value("-d");
+        preproc::expand_deps(source_lines, deps);
+    }
     
-    std::vector<std::vector<std::string>> tokens = lexer::tokenize(source_lines);
-    line_exec(tokens, var, args);
+    std::vector<Token> tokens = lexer::tokenize(source_lines);
+    line_exec(tokens);
+
+    VarTable::gc();
 
     return 0;
 }

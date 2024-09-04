@@ -1,0 +1,97 @@
+#pragma once
+
+#include <vector>
+
+struct Token {
+    std::string head = "",
+                target ="";
+
+    std::vector<std::string> init = {},
+                             values = {};
+};
+
+struct Config {
+    std::string id = "";
+    bool head           =  false,
+         optional_arg   =  false,
+         single_arg     =  false,
+         multiple_args  =  false,
+         init_list      =  false,
+         target         =  false,
+         tri            =  false;
+};
+
+/*
+ * Defines initialization list for re-assignment of values.
+ * Format: $var1 = val1, $var2 = val3, $var3 = $var1, ...
+ */
+Config group_0 = {
+    .id = "group_0",
+    .init_list = true,
+};
+
+/*
+ * Defines an instruction with head which takes in one or no argument.
+ * Format: ins
+ *         ins $var
+ */
+Config group_1 = {
+    .id = "group_1",
+    .head = true,
+    .optional_arg = true,
+    .single_arg = true,
+};
+
+
+/*
+ * Defines an head with initialization list for variable assignment and strictly does not have a target.
+ * Format: const var1 = val1, var2 = val2, var3 = val3, ...
+ */
+Config group_2 = {
+    .id = "group_2",
+    .head = true,
+    .init_list = true,
+};
+
+/*
+ * Defines an instruction with head and multiple arguments with optional target operator. 
+ * Format: ins arg1 arg2 arg3 ...
+ *         int arg1 arg2 arg3 ... -> $target
+ */
+Config group_3 = {
+    .id = "group_3",
+    .head = true,
+    .multiple_args = true,
+    .target = true,
+};
+
+/*
+ * Defines an "if" statement.
+ */
+
+Config group_4 = {
+    .id = "group_4",
+    .tri = true,
+};
+
+namespace p_config {
+    Config* get_config(const std::string& cmd) {
+        if(cmd == "exit" || cmd == "warn" || cmd == "stdin") {
+            return &group_1;
+        }
+        else if(cmd == "var" || cmd == "const" || cmd == "static") {
+            return &group_2;
+        }
+        else if(cmd == "style" || cmd == "stdout") {
+            return &group_3;
+        }
+        else if(cmd == "if" || cmd == "}") {
+            return &group_4;
+        }
+        else if(cmd[0] == '$') {
+            return &group_0;
+        }
+
+        return &group_0;
+    }
+}

@@ -28,6 +28,10 @@ namespace lib {
         return text;
     }
 
+    bool is_string(const std::string& text) {
+        return text[0] == '"' && text[text.size() - 1] == '"';
+    }
+
     bool ends_with(const std::string& major_string, const std::string& minor_string) {
         int major_string_size = major_string.size();
         int minor_string_size = minor_string.size();
@@ -64,7 +68,7 @@ namespace lib {
         int size = line.size();
         int white_space_len = 0;
         for(int line_index = 0; line_index < size; line_index++) {
-            if((line[line_index] == ' ') || (line[line_index] == '\t')) {
+            if((line[line_index] == ' ') || (line[line_index] == '\t') || (line[line_index] == '\n')) {
                 white_space_len++;
                 continue;
             }
@@ -81,7 +85,7 @@ namespace lib {
         int size = line.size();
         int white_space_len = 0;
         for(int line_index = size - 1; line_index > 0; line_index--) {
-            if((line[line_index] == ' ') || (line[line_index] == '\t')) {
+            if((line[line_index] == ' ') || (line[line_index] == '\t') || (line[line_index] == '\n')) {
                 white_space_len++;
                 continue;
             }
@@ -122,6 +126,16 @@ namespace lib {
         return false;
     }
 
+    std::string resolve_string(std::string text) {
+        int text_size = text.size();
+        std::string resolved_string = text;
+        if(text[0] == '"' && text[text_size - 1] == '"') {
+            resolved_string = text.substr(1, text_size - 2);
+        }
+
+        return resolved_string;
+    }
+
     std::vector<std::string> split(std::string& text, char delimiter = ' ', char escape_char = '"') {
         int len = -1;
         int begin = 0;
@@ -140,17 +154,17 @@ namespace lib {
         }
 
         for(int current_index = 0; current_index < size; current_index++) {
-            if((text[current_index] == escape_char) && ((text[current_index - 1] == delimiter) || !enable_split)) {
-                enable_split = !enable_split;
-                if(enable_split) {
-                    begin++;
-                }
-                else {
-                    len -= 2;
+            len++;
+
+            if(delimiter == '.' && text[current_index] == delimiter) {
+                if((text[current_index - 1] >= '0' && text[current_index - 1] <= '9') && (text[current_index + 1] >= '0' && text[current_index + 1] <= '9')) {
+                    continue;
                 }
             }
 
-            len++;
+            if((text[current_index] == escape_char) && ((text[current_index - 1] == delimiter) || (text[current_index - 1] == ' ') || !enable_split)) {
+                enable_split = !enable_split;
+            }
 
             if((text[current_index] == delimiter) && enable_split) {
                 std::string required_string = text.substr(begin, len);
@@ -163,6 +177,82 @@ namespace lib {
         }
 
         return words;
+    }
+
+    std::vector<std::string> new_split(std::string& text, char delimiter = '.', char secondary_id = '@', char secondary_delimiter = '\n', char escape_char = '"') {
+        int index = 0;
+        int text_size = text.size();
+        int begin = 0;
+        int end = 0;
+        bool inside_string = false;
+        std::string required_line;
+        std::vector<std::string> lines;
+
+        if(text[text_size - 1] != delimiter) {
+            text += delimiter;
+            text_size++;
+        }
+
+        while(index < text_size) {
+            if(!inside_string && text[index] == '#' && text[index + 1] == '!') {
+                while(text[index] != '\n') {
+                    index++;
+                }
+                begin = ++index;
+            }
+
+            if(!inside_string && text[index] == secondary_id) {
+                while(text[index] != secondary_delimiter) {
+                    index++;
+                }
+                required_line = text.substr(begin, index - begin);
+                lines.emplace_back(required_line);
+                begin = ++index;
+                continue;
+
+            }
+
+            if(!inside_string && text.substr(index, 2) == "if") {
+                while(text[index - 1] != '{') {
+                    index++;
+                }
+                required_line = text.substr(begin, index - begin);
+                lines.emplace_back(required_line);
+                begin = index++;
+                continue;
+            }
+
+            if(!inside_string && text[index] == '}') {
+                int end = index;
+                required_line = text.substr(index, end - index + 1);
+                lines.emplace_back(required_line);
+                begin = ++index;
+                continue;
+            }
+
+            if(text[index] == '.' && delimiter == '.') {
+                if((text[index - 1] >= '0' && text[index - 1] <= '9') && (text[index + 1] >= '0' && text[index + 1] <= '9')) {
+                    index++;
+                    continue;
+                }
+            }
+
+            if(!inside_string && text[index] == delimiter) {
+                end = index;
+                required_line = text.substr(begin, end - begin);
+                if(required_line != "") {
+                    lines.emplace_back(required_line);
+                }
+                begin = end + 1;
+            }
+
+            if(text[index] == escape_char) {
+                inside_string = !inside_string;
+            }
+            index++;
+        }
+
+        return lines;
     }
 
     std::vector<std::string> str_split(std::string& text, std::string delimiter) {
