@@ -7,6 +7,8 @@
 #include "var.hpp"
 #include "lib/lib_style.hpp"
 #include "lib/lib_string.hpp"
+
+#include <stack>
 //#include "lib/lib_list.hpp"
 
 namespace parser {
@@ -30,6 +32,7 @@ void line_exec(std::vector<Token>& tokens) {
     int line = 0;
     int depth = 0;
     int current_depth = 0;
+    std::stack<bool> conditional_stack;
     while(line < total_tokens) {
         Token& cmd = tokens[line];
         std::string& ins = cmd.head;
@@ -39,20 +42,52 @@ void line_exec(std::vector<Token>& tokens) {
             continue;
         }
 
-        if(tokens[line].head == "if" && tokens[line].values[tokens[line].values.size() - 1] == "{") {
+        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
             depth += 1;
             current_depth = depth;
-            // might need to refactor values into a variable.
-            bool condition = eval(tokens[line].values[0]) == "1";
-            if(condition) {
-                line++;
-                continue;
+            if(tokens[line].head == "if") {
+                // might need to refactor values into a variable.
+                bool condition = eval(tokens[line].values[0]) == "1";
+                conditional_stack.push(condition);
+                //if(condition) {
+                if(conditional_stack.top() && tokens[line].head != "else") {
+                    line++;
+                    continue;
+                }
+                else {
+                    /*if(tokens[line].head == "else") {
+                        bool check = conditional_stack.top();
+                        conditional_stack.pop();
+                        if(!check) {
+                            line++;
+                            depth++;
+                            continue;
+                        }
+                    }*/
+                    while(depth != current_depth - 1) {
+                        line++;
+                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
+                        if(tokens[line].head == "}") { depth--; }
+                    }
+                }
             }
             else {
-                while(depth != current_depth - 1) {
-                    line++;
-                    if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
-                    if(tokens[line].head == "}") { depth--; }
+                //
+                if(tokens[line].head == "else") {
+                    bool check = conditional_stack.top();
+                    conditional_stack.pop();
+                    if(!check) {
+                        line++;
+                        depth++;
+                        continue;
+                    }
+                    else {
+                        while(depth != current_depth - 1) {
+                            line++;
+                            if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
+                            if(tokens[line].head == "}") { depth--; }
+                        }
+                    }
                 }
             }
         }

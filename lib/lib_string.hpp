@@ -212,7 +212,7 @@ namespace lib {
 
             }
 
-            if(!inside_string && text.substr(index, 2) == "if") {
+            if(!inside_string && (text.substr(index, 2) == "if" || text.substr(index, 4) == "else")) {
                 while(text[index - 1] != '{') {
                     index++;
                 }

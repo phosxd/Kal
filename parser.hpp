@@ -556,7 +556,9 @@ namespace parser {
                     std::cout << "{ expected\n";
                     exit(1);
                 }
-                token.values.emplace_back(text.substr(index, text_size - 3));
+                if(token.head != "else") {
+                    token.values.emplace_back(text.substr(index, text_size - 3));
+                }
                 token.values.emplace_back("{");
                 break;
             }
