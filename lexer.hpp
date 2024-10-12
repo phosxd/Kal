@@ -19,15 +19,20 @@ namespace lexer {
         for(int line = 0; line < lines; line++) {
             int get_head = 0;
             std::string current_line = source_lines[line];
-            while(current_line[get_head] != ' ' && current_line[get_head] != '\t' && current_line[get_head] != '\n') {
-                get_head++;
-            }
-            head = current_line.substr(0, get_head);
             if(current_line.substr(0, 2) == "if") {
                 head = "if";
             }
+            else if(current_line.substr(0, 4) == "else") {
+                head = "else";
+            }
+            else {
+                while(current_line[get_head] != ' ' && current_line[get_head] != '\t' && current_line[get_head] != '\n') {
+                    get_head++;
+                }
+                head = current_line.substr(0, get_head);
+            }
             config = p_config::get_config(head);
-            Token token = parser::parse(current_line, config);
+            Token token = parser::parse(current_line, config, head);
             all_tokens.emplace_back(token);
         }
         //exit(1);

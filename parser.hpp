@@ -522,7 +522,7 @@ namespace parser {
         return values;
     }
 
-    Token parse(const std::string& text, Config* config) {
+    Token parse(const std::string& text, Config* config, std::string& head) {
         Token token;
         int index = 0;
         int text_size = text.size();
@@ -545,6 +545,11 @@ namespace parser {
                     token.head = text;
                     break;
                 }
+                else if(head == "else") {
+                    token.head = head;
+                    token.values.emplace_back("{");
+                    break;
+                }
                 begin = index;
                 while(!WHITESPACE(text, index) && text[index] != '(') {
                     index++;
@@ -556,6 +561,7 @@ namespace parser {
                     std::cout << "{ expected\n";
                     exit(1);
                 }
+                // re-check this if block.
                 if(token.head != "else") {
                     token.values.emplace_back(text.substr(index, text_size - 3));
                 }
