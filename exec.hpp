@@ -151,6 +151,13 @@ void line_exec(std::vector<Token>& tokens) {
             }
         }
 
+        else if(ins == "inert" && cmd.init.size() != 0) {
+            int vars = cmd.init.size();
+            for(int each = 0; each < vars; each += 2) {
+                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, INERT, false, depth);
+            }
+        }
+
         else if(ins == "stdout") {
             if(cmd_size == 0) {
                 std::cout << "";

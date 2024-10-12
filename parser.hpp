@@ -575,7 +575,7 @@ namespace parser {
                 token.head = required_token;
             }
 
-            if(token.head == "var" || token.head == "const" || token.head == "static") {
+            if(token.head == "var" || token.head == "const" || token.head == "static" || token.head == "inert") {
                 if(!config->init_list) {
                     END;
                 }

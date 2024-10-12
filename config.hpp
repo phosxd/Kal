@@ -79,7 +79,7 @@ namespace p_config {
         if(cmd == "exit" || cmd == "warn" || cmd == "stdin") {
             return &group_1;
         }
-        else if(cmd == "var" || cmd == "const" || cmd == "static") {
+        else if(cmd == "var" || cmd == "const" || cmd == "static" || cmd == "inert") {
             return &group_2;
         }
         else if(cmd == "style" || cmd == "stdout") {
