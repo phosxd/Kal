@@ -8,6 +8,7 @@
 #include "test_expr_parser.hpp"
 #include "test_parser.hpp"
 #include "test_var.hpp"
+#include "test_control_flow.hpp"
 
 int main() {
     test_arg_parser();
@@ -16,6 +17,7 @@ int main() {
     test_expr_parser();
     test_parser();
     test_var();
+    test_control_flow();
 
     exit_successfully();
     return 0;
