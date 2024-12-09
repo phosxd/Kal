@@ -10,6 +10,7 @@
 
 #include <stack>
 #include <utility>
+#include <tuple>
 //#include "lib/lib_list.hpp"
 
 namespace parser {
@@ -34,6 +35,8 @@ void line_exec(std::vector<Token>& tokens) {
     int depth = 0;
     int current_depth = 0;
     std::stack<std::pair<bool, int>> conditional_stack;
+    std::stack<std::tuple<bool, int, int>> loop_stack;
+
     while(line < total_tokens) {
         Token& cmd = tokens[line];
         std::string& ins = cmd.head;
@@ -94,13 +97,40 @@ void line_exec(std::vector<Token>& tokens) {
                     //continue;
                 }
             }
-            //
+            else if(tokens[line].head == "loop") {
+                bool condition = eval(tokens[line].values[0]) == "1";
+                loop_stack.push({ condition, line, depth });
+                if(condition) {
+                    line++;
+                    continue;
+                }
+                else {
+                    int local_depth = 1;
+                    while(local_depth != 0) {
+                        line++;
+                        if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
+                        if(tokens[line].head == "}") { local_depth--; }
+                    }
+                    line++;
+                    depth--;
+                    loop_stack.pop();
+                    continue;
+                }
+            }
         }
         else if(tokens[line].head == "}") {
             VarTable::gc(depth);
             depth--;
             if(depth < 0) {
                 depth = 0;
+            }
+            if(loop_stack.size() != 0 && (std::get<2>(loop_stack.top()) == depth + 1)) {
+                std::tuple<bool, int, int> top = loop_stack.top();
+                if(std::get<0>(top)) {
+                    line = std::get<1>(top);
+                }
+                loop_stack.pop();
+                continue;
             }
         }
 
