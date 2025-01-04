@@ -702,7 +702,7 @@ namespace VarTable {
                 }
             }
             else {
-                std::vector<std::string> syms = get_var_with_indices(var);
+                std::vector<std::string> syms = get_var_with_indices(expand_var(var));
                 std::string last_symbol = syms[syms.size() - 1];
                 Value* v = get("", syms, true);
 

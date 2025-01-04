@@ -234,7 +234,11 @@ std::string eval_indices(const std::string& text, int& index) {
     std::string current, evaluated = "";
     while(index < size) {
         current = parser::extract_list(text, '[', index);
-        evaluated += "[" + eval(current.substr(1, current.size() - 2)) + "]";
+        std::string intermediate = eval(current.substr(1, current.size() - 2));
+        if(intermediate[0] == '$') {
+            intermediate = VarTable::print(intermediate);
+        }
+        evaluated += "[" + intermediate + "]";
         index++;
     }
 
