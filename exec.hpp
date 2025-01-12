@@ -38,6 +38,7 @@ void line_exec(std::vector<Token>& tokens) {
     std::stack<std::tuple<bool, int, int>> loop_stack;
 
     while(line < total_tokens) {
+        //std::cout << "Line: " << (line + 1) << " Token: " << tokens[line].head << " Size: " << tokens[line].values.size() << "\n";
         Token& cmd = tokens[line];
         std::string& ins = cmd.head;
         int cmd_size = cmd.values.size();
@@ -47,6 +48,7 @@ void line_exec(std::vector<Token>& tokens) {
         }
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
+            // maybe incr and set these values in the if-blocks;
             depth += 1;
             current_depth = depth;
             //std::cout << tokens[line].values[0] << " : " << depth << "\n";
@@ -60,6 +62,7 @@ void line_exec(std::vector<Token>& tokens) {
                     continue;
                 }
                 else {
+                    //std::cout << "If End: " << depth << " " << (current_depth - 1) << "\n";
                     while(depth != current_depth - 1) {
                         line++;
                         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { depth++; }
@@ -100,6 +103,7 @@ void line_exec(std::vector<Token>& tokens) {
             else if(tokens[line].head == "loop") {
                 bool condition = eval(tokens[line].values[0]) == "1";
                 loop_stack.push({ condition, line, depth });
+                //std::cout << "Loop Depth: " << depth << " " << (line + 1) << "\n";
                 if(condition) {
                     line++;
                     continue;
@@ -124,13 +128,53 @@ void line_exec(std::vector<Token>& tokens) {
             if(depth < 0) {
                 depth = 0;
             }
-            if(loop_stack.size() != 0 && (std::get<2>(loop_stack.top()) == depth + 1)) {
+            //std::cout << "Line: " << (line + 1) << " Actual: " << std::get<2>(loop_stack.top()) << " Required: " << (depth + 1) << "\n";
+            /// temporary solution for the problem stated in FIGURED.
+            /*int new_depth = depth + 1;
+            if(loop_stack.size() == 1) {
+                new_depth = depth;
+            }*/
+            ///
+            // FIGURED: the depths do not match for the last iteration (when stack size is 1). difference of 1.
+            if(loop_stack.size() != 0 && (std::get<2>(loop_stack.top()) == depth + 1 /*new_depth*/)) {
                 std::tuple<bool, int, int> top = loop_stack.top();
                 if(std::get<0>(top)) {
                     line = std::get<1>(top);
                 }
                 loop_stack.pop();
                 continue;
+            }
+        }
+
+        else if(ins == "continue") {
+            if(loop_stack.size() != 0) {
+                //std::cout << "Line: " << line << "\n";
+                //std::cout << "Size: " << loop_stack.size() << "\n";
+                //std::cout << "[" << std::get<0>(loop_stack.top()) << " " << std::get<1>(loop_stack.top()) << " " << std::get<2>(loop_stack.top()) << "]\n";
+                VarTable::gc(depth);
+                line = std::get<1>(loop_stack.top());
+                depth = std::get<2>(loop_stack.top()) - 1;
+                //depth--;
+                //std::cout << "Line: " << line << "\n";
+                loop_stack.pop();
+                continue;
+            }
+        }
+
+        else if(ins == "break") {
+            if(loop_stack.size() != 0) {
+                int loop_depth = std::get<2>(loop_stack.top());
+                // std::cout << "[" << depth << "]\n";
+                // std::cout << "[" << loop_depth << "]" << "\n";
+                while(loop_stack.size() != 0 && loop_depth != depth + 1) {
+                    line++;
+                    if(tokens[line].head == "}") {
+                        depth--;
+                    }
+                }
+                loop_stack.pop();
+                // std::cout << "Line: " << line << "\n";
+                // std::cout << "Size: " << loop_stack.size() << "\n";
             }
         }
 

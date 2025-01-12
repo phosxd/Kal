@@ -76,7 +76,7 @@ Config group_4 = {
 
 namespace p_config {
     Config* get_config(const std::string& cmd) {
-        if(cmd == "exit" || cmd == "warn" || cmd == "stdin") {
+        if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue") {
             return &group_1;
         }
         else if(cmd == "var" || cmd == "const" || cmd == "static" || cmd == "inert") {
