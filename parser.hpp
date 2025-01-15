@@ -522,6 +522,50 @@ namespace parser {
         return values;
     }
 
+    std::vector<std::string> parse_fn(const std::string& text, int& index) {
+        while(WHITESPACE(text, index)) {
+            index++;
+        }
+        int initial_index = index;
+        int text_size = text.size();
+        std::vector<std::string> fn_def;
+        while(index < text_size - 1 && !match(index, text, target_operator, false)) {
+            index++;
+        }
+        int fn_name_len = index - initial_index;
+        int step = text[index - 1] == ' ' && fn_name_len != 0 ? 1 : 0;
+        fn_def.emplace_back(text.substr(initial_index, fn_name_len - step));
+        index += 2;
+        /// maybe just parse init values...?
+        while(index < text_size - 1) {
+            while(index < text_size - 1 && WHITESPACE(text, index)) {
+                index++;
+            }
+            if(text[index] == '[') {
+                std::string list = extract_list(text, '[', index);
+                fn_def.emplace_back(list);
+                index++;
+                continue;
+            }
+            int start = index;
+            while(index < text_size - 1 && !WHITESPACE(text, index)) {
+                index++;
+            }
+            int end = index;
+            std::string token = text.substr(start, end - start);
+            if(token != "") {
+                fn_def.emplace_back(token);
+            }
+            index++;
+        }
+        ///
+        if(text[text_size - 1] == '{') {
+            fn_def.emplace_back("{");
+        }
+
+        return fn_def;
+    }
+
     Token parse(const std::string& text, Config* config, std::string& head) {
         Token token;
         int index = 0;
@@ -530,6 +574,13 @@ namespace parser {
         int begin = 0;
         int end = 0;
         std::string required_token;
+
+        if(config->id == 5) {
+            token.head = head;
+            int idx = 3;
+            token.values = parse_fn(text, idx);
+            return token;
+        }
 
         while(index < text_size) {
             if(WHITESPACE(text, index)) {

@@ -152,8 +152,9 @@ void line_exec(std::vector<Token>& tokens) {
                 //std::cout << "Size: " << loop_stack.size() << "\n";
                 //std::cout << "[" << std::get<0>(loop_stack.top()) << " " << std::get<1>(loop_stack.top()) << " " << std::get<2>(loop_stack.top()) << "]\n";
                 VarTable::gc(depth);
-                line = std::get<1>(loop_stack.top());
-                depth = std::get<2>(loop_stack.top()) - 1;
+                std::tuple<bool, int, int> top = loop_stack.top();
+                line = std::get<1>(top);
+                depth = std::get<2>(top) - 1;
                 //depth--;
                 //std::cout << "Line: " << line << "\n";
                 loop_stack.pop();
@@ -173,6 +174,7 @@ void line_exec(std::vector<Token>& tokens) {
                     }
                 }
                 loop_stack.pop();
+                continue;
                 // std::cout << "Line: " << line << "\n";
                 // std::cout << "Size: " << loop_stack.size() << "\n";
             }
