@@ -433,20 +433,20 @@ namespace parser {
         return required_token;
     }
 
-    std::vector<std::string> parse_init(std::string text, int& index, bool for_dict = false) {
+    std::vector<std::string> parse_init(std::string text, int& index, /*bool for_dict = false*/ std::string assign_op = "=", int end = 0) {
         std::vector<std::string> tokens;
-        std::string assign_op = "=";
+        //std::string assign_op = "=";
         std::string required_token = "";
-        int text_size = text.size();
+        int text_size = text.size() - end;
         while(index < text_size) {
             if(WHITESPACE(text, index)) {
                 index++;
                 continue;
             }
-            if(for_dict) {
+            /*if(for_dict) {
                 assign_op = "->";
-            }
-            if(for_dict && text[index] == '"') {
+            }*/
+            if(/*for_dict*/ assign_op != "=" && text[index] == '"') {
                 required_token = parse_string(text, index);
                 index++;
             }
@@ -459,7 +459,7 @@ namespace parser {
             while(WHITESPACE(text, index)) {
                 index++;
             }
-            if(index < text_size && match(index, text, target_operator, false) && !for_dict) {
+            if(index < text_size && match(index, text, target_operator, false) && /*!for_dict*/ assign_op == "=") {
                 END;
             }
             if(text[index] == ',' || index == text_size) {
@@ -475,7 +475,7 @@ namespace parser {
                 }
                 int begin = index;
                 while(text[index] != ',' && index != text_size) {
-                    if(index < text_size && match(index, text, target_operator, false) && !for_dict) {
+                    if(index < text_size && match(index, text, target_operator, false) && /*!for_dict*/ assign_op == "=") {
                         END;
                     }
                     if(text[index] == '"') {
@@ -537,7 +537,7 @@ namespace parser {
         fn_def.emplace_back(text.substr(initial_index, fn_name_len - step));
         index += 2;
         /// maybe just parse init values...?
-        while(index < text_size - 1) {
+        /*while(index < text_size - 1) {
             while(index < text_size - 1 && WHITESPACE(text, index)) {
                 index++;
             }
@@ -557,7 +557,14 @@ namespace parser {
                 fn_def.emplace_back(token);
             }
             index++;
-        }
+        }*/
+        //std::vector<std::string> args = parse_init(text.substr(index, text_size - index - 1), begin, ":");
+        std::vector<std::string> args = parse_init(text, index, ":", 1);
+        fn_def.reserve(2 + args.size());
+        fn_def.insert(fn_def.end(), args.begin(), args.end());
+        /*for(std::string& each : args) {
+            fn_def.emplace_back(each);
+        }*/
         ///
         if(text[text_size - 1] == '{') {
             fn_def.emplace_back("{");

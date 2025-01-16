@@ -25,7 +25,7 @@ std::vector<std::string> parse_map(std::string text, int& index) {
     contents = contents.substr(1, contents.size() - 2);
 
     int pos = 0;
-    std::vector<std::string> vals = parser::parse_init(contents, pos, true);
+    std::vector<std::string> vals = parser::parse_init(contents, pos, "->");
     return vals;
 }
 

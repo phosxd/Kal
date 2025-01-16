@@ -86,6 +86,7 @@ Config group_5 = {
 
 namespace p_config {
     Config* get_config(const std::string& cmd) {
+        // refactor this into switch-case.
         if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue" || cmd == "<-") {
             return &group_1;
         }
@@ -105,7 +106,7 @@ namespace p_config {
             return &group_0;
         }
 
-        // throw erorr if no instruction is recognized.
+        // throw error if no instruction is recognized.
 
         return &group_0;
     }
