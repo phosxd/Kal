@@ -126,7 +126,7 @@ namespace parser {
         int end = index;
         //index--;
         std::string required_string = text.substr(begin, end - begin);
-        if(text[index] == '[' && with_sub) {
+        if(text[index] == '[' && with_sub && index != begin) {
             while(text[index] == '[') {
                 std::string sub_body = extract_list(text, '[', index);
                 index++;
@@ -448,6 +448,14 @@ namespace parser {
             }*/
             if(/*for_dict*/ assign_op != "=" && text[index] == '"') {
                 required_token = parse_string(text, index);
+                index++;
+            }
+            else if(text[index] == '[') {
+                required_token = extract_list(text, text[index], index);
+                index++;
+            }
+            else if(match(index, text, "#(", false)) {
+                required_token = extract_dict(text, index);
                 index++;
             }
             else {
