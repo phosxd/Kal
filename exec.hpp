@@ -53,8 +53,17 @@ void line_exec(std::vector<Token>& tokens) {
             Fn* fn = Functions::fn[fn_name];
             int args_size = cmd.values.size();
             depth++;
-            for(int arg = 0; arg < args_size; arg++) {
+            int arg;
+            for(arg = 0; arg < args_size; arg++) {
                 VarTable::set(fn->init[arg * 2], cmd.values[arg], nullptr, VAR, false, depth);
+            }
+            int all = (fn->init.size() / 2);
+            /*if(arg != 0) {
+                arg++;
+            }*/
+            for(int rest = arg; rest < all; rest++) {
+                VarTable::set(fn->init[rest * 2], fn->init[(rest * 2) + 1], nullptr, VAR, false, depth);
+                //std::cout << fn->init[2*rest] << "(" << (2*rest) << ")" << " : " << fn->init[2*rest + 1] << "(" << (2*rest + 1) << ")" << "\n";
             }
             line_exec(fn->body);
             VarTable::gc(depth);
