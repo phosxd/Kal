@@ -390,8 +390,8 @@ namespace VarTable {
     void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0);
 
     void gc(int depth = 0) {
-        std::unordered_map<std::string, Value*>::iterator itr;
-        for(itr = memory.begin(); itr != memory.end(); itr++) {
+        std::unordered_map<std::string, Value*>::iterator itr, end = memory.end();
+        for(itr = memory.begin(); itr != end; itr++) {
             if(itr->second != nullptr && ScopeTable::scope[itr->first] >= depth) {
                 // std::cout << "GCing... " << itr->first << " " << itr->second << "\n";
                 delete itr->second;

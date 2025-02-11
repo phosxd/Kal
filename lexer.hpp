@@ -12,8 +12,8 @@ namespace Functions {
     std::unordered_map<std::string, Fn*> fn;
 
     void gc() {
-        std::unordered_map<std::string, Fn*>::iterator itr;
-        for(itr = fn.begin(); itr != fn.end(); itr++) {
+        std::unordered_map<std::string, Fn*>::iterator itr, end = fn.end();
+        for(itr = fn.begin(); itr != end; itr++) {
             if(itr->second != nullptr) {
                 delete itr->second;
                 fn[itr->first] = nullptr;
