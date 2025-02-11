@@ -30,7 +30,7 @@ namespace parser {
 int depth = 0;
 std::stack<std::string> call_stack;
 
-void line_exec(std::vector<Token>& tokens) {
+Value* line_exec(std::vector<Token>& tokens) {
     bool warn = true;
     int total_tokens = tokens.size();
 
@@ -51,11 +51,15 @@ void line_exec(std::vector<Token>& tokens) {
         }
 
         if(cmd.head == "<-") {
-            std::string result = eval(cmd.body);
+            std::string result = eval(cmd.target);
             if(result[0] == '$') {
-                result = VarTable::print(result);
+                //result = VarTable::print(result);
+                //return copy(VarTable::get(result, {}, true, true));
+                return copy(VarTable::get(result, {}, true, true));
             }
             // TODO: send this result value to the outer scope and assign it to the target variable.
+            //return new Value();
+            return make_value(result);
         }
 
         if(cmd.head[0] == ':') {
@@ -76,7 +80,11 @@ void line_exec(std::vector<Token>& tokens) {
             }
 
             call_stack.push(fn_name);
-            line_exec(fn->body);
+            Value* return_value = line_exec(fn->body);
+            if(return_value != nullptr) {
+                VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
+            }
+            //delete return_value;
             VarTable::gc(depth);
             depth--;
             call_stack.pop();
@@ -293,4 +301,6 @@ void line_exec(std::vector<Token>& tokens) {
     }
 
     std::cout << style::style["reset"];
+
+    return nullptr;
 }

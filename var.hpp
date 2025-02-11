@@ -35,6 +35,26 @@ enum Type {
     INERT
 };
 
+Value* make_value(std::string value) {
+    Value* val = nullptr;
+    if(value[0] >= '0' && value[0] <= '9') {
+        val = new Number(value);
+    }
+    else if(value[0] == '"') {
+        val = new String(value.c_str());
+    }
+    else if(value[0] == '[') {
+        val = new List(value);
+    }
+    else if(value[0] == '#' && value[1] == '(') {
+        val = new Dict(value);
+    }
+    else if(value == "null") {
+        val = new Null();
+    }
+    return val;
+}
+
 Value* copy(Value*);
 std::unordered_map<std::string, Value*> memory;
 namespace VarTable {
