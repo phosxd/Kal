@@ -467,10 +467,15 @@ std::string eval(std::string expr) {
     std::cout << "\n";
     exit(1);*/
 
-    if(rpn.size() == 1 && rpn.front()[0] >= '0' && rpn.front()[0] <= '9') {
-        result = lib::trim_num(rpn.front());
+    std::string rpn_front = rpn.front();
+    if(rpn.size() == 1 && (rpn_front[0] != '$' || rpn_front[1] != '(')) {
+        if(rpn_front[0] >= '0' && rpn_front[0] <= '9') {
+            result = lib::trim_num(rpn_front);
+            rpn.pop();
+            return result;
+        }
         rpn.pop();
-        return result;
+        return rpn_front;
     }
 
     /*while(!rpn.empty()) {

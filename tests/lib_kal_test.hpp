@@ -91,6 +91,6 @@ void progress() {
 void exit_successfully() {
     std::cout << style::style["reset"] << style::style["bold"]
         << "\nAll tests " << style::style["green"] << "PASS" << style::style["reset"]
-        << style::style["bold"] << ".\n" << style::style["reset"]
+        << style::style["bold"] << "." << style::style["reset"]
         << std::endl;
 }
