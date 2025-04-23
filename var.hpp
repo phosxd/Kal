@@ -403,12 +403,18 @@ namespace VarTable {
                 //std::cout << "GCing... " << itr->first << " " << itr->second << "Depth: " << depth << "\n";
                 if(itr->second->shadow.size() != 0) {
                     std::pair<Value*, int> top = itr->second->shadow.top();
+                    //std::cout << "Actual Depth: " << top.second << " Current Depth: " << depth << "\n";
+                    // Depth mismatch.
                     if(top.second == depth) {
+                        //std::cout << "[" << itr->first << "] " << depth << "\n";
+                        //std::cout << "Top First: " << top.first << "\n";
+                        //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
                         delete top.first;
                         itr->second->shadow.pop();
                     }
                 }
                 else if(ScopeTable::scope[itr->first] >= depth) {
+                    //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
                     delete itr->second;
                     memory[itr->first] = nullptr;
                 }
@@ -432,10 +438,12 @@ namespace VarTable {
         if(name != "" && memory[name.substr(1)] != nullptr) {
             Value* fetched_var = memory[name.substr(1)];
             Value* ret_var = nullptr;
-            if(fetched_var->shadow.size() != 0) {
+            if(fetched_var != nullptr && fetched_var->shadow.size() != 0) {
                 ret_var = fetched_var->shadow.top().first;
                 //fetched_var->shadow.pop();
-                return ret_var;
+                //std::cout << "ret_var:" << ret_var << "\n";
+                ///return copy(ret_var);
+                return (for_print) ? ret_var : copy(ret_var);
             } 
         }
 
@@ -893,6 +901,7 @@ namespace VarTable {
         Value* v = get(var, {}, true, true);
         //std::cout << var << " " << v << std::endl;
         //std::cout << v->print() << std::endl;
+        //std::cout << "v: " << v << "\n";
         return v->print();
     }
 };
