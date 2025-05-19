@@ -492,16 +492,22 @@ std::string eval(std::string expr) {
         token = rpn.front();
         if(token[0] == '$' && token[1] == '(') {
             std::vector<std::string> function_line = { parser::resolve_fexpr(token) };
+            //std::cout << "Resolved Function: " << parser::resolve_fexpr(token) << std::endl;
             std::vector<Token> function_call = lexer::tokenize(function_line);
+            //std::cout << "Function Body:\n" << function_call[0].head << " " << function_call[0].values[0] << "\n";
+            //std::cout << "Shadow: " << VarTable::get("$n", {}, false, true, true)->shadow.size() << std::endl;
             Value* result = line_exec(function_call, true);
             token = result->print();
+            //std::cout << "Token: " << token << "\n";
             // std::cout << "Ret Val: " << token << "\n";
             delete result;
+            //std::cout << function_call[0].head << " " << function_call[0].values[0] << " [Done]\n";
         }
         else if(token[0] == '$') {
             // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true);
             if(!dynamic_cast<List*>(temp) && !dynamic_cast<Dict*>(temp)) {
+                //std::cout << "Token: " << token << "\n";
                 token = VarTable::print(token);
             }
         }

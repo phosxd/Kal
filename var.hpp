@@ -43,7 +43,7 @@ namespace VarTable {
 
 Value* make_value(std::string value) {
     Value* val = nullptr;
-    if(value[0] >= '0' && value[0] <= '9') {
+    if((value[0] >= '0' && value[0] <= '9') || value[0] == '-') {
         val = new Number(value);
     }
     else if(value[0] == '"') {
@@ -440,9 +440,14 @@ namespace VarTable {
             Value* ret_var = nullptr;
             if(fetched_var != nullptr && fetched_var->shadow.size() != 0) {
                 ret_var = fetched_var->shadow.top().first;
+                // ret_var is nullptr in this case.
+
+                //std::cout << "stack size: " << fetched_var->shadow.size() << " " << ret_var << "\n";
                 //fetched_var->shadow.pop();
                 //std::cout << "ret_var:" << ret_var << "\n";
                 ///return copy(ret_var);
+                //if(name.substr(1) == "n") { std::cout << "n real val: " << ret_var->print() << "\n"; }
+                //std::cout << "Ret Var: " << ret_var << "\n";
                 return (for_print) ? ret_var : copy(ret_var);
             } 
         }
@@ -705,7 +710,10 @@ namespace VarTable {
             }
         }
         else {
+            //std::cout << "Shadowing Value 1: " << value << "\n";
+            std::cout << "Data: " << data << "\n";
             value = make_value(data);
+            //std::cout << "Shadowing Value 2: " << value << "\n";
         }
 
         if(memory[var] != nullptr && var[0] != '$') {
@@ -899,6 +907,7 @@ namespace VarTable {
 
     std::string print(std::string var) {
         Value* v = get(var, {}, true, true);
+        ////std::cout << v << "\n";
         //std::cout << var << " " << v << std::endl;
         //std::cout << v->print() << std::endl;
         //std::cout << "v: " << v << "\n";
