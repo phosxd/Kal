@@ -352,7 +352,7 @@ std::string eval(std::string expr) {
         }
         else if(expr[index] == '$' && expr[index + 1] == '(') {
             rpn.push(parser::parse_fexpr(expr, index));
-            index++;
+            //index++;
             continue;
         }
         else if(expr[index] == '$') {
@@ -498,6 +498,7 @@ std::string eval(std::string expr) {
             //std::cout << "Shadow: " << VarTable::get("$n", {}, false, true, true)->shadow.size() << std::endl;
             Value* result = line_exec(function_call, true);
             token = result->print();
+            //std::cout << "Eval Token: " << token << std::endl;
             //std::cout << "Token: " << token << "\n";
             // std::cout << "Ret Val: " << token << "\n";
             delete result;
