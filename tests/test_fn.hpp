@@ -7,7 +7,7 @@
 #include "../lexer.hpp"
 #include "../exec.hpp"
 
-#define GC delete actual_value; delete found_value;
+#define CHECK check(found_value->print(), actual_value->print()); delete actual_value; delete found_value;
 
 void make_fn(std::vector<std::string> lines) {
     std::vector<Token> tokens = lexer::tokenize(lines);
@@ -21,11 +21,12 @@ Value* fn_call(std::vector<std::string> lines) {
 void test_fn() {
     Value* actual_value;
     Value* found_value;
+    std::vector<std::string> lines;
 
     component("Functions");
 
     title("Return values");
-    std::vector<std::string> lines = {
+    lines = {
         "fn greet {",
         "<- \"Hello\"",
         "}"
@@ -33,8 +34,67 @@ void test_fn() {
     make_fn(lines);
     actual_value = new String("\"Hello\"");
     found_value = fn_call({ ":greet" });
-    check(found_value->print(), actual_value->print());
-    GC;
+    CHECK;
+
+    lines = {
+        "fn hundred -> {",
+        "<- 45 + 55",
+        "}"
+    };
+    make_fn(lines);
+    actual_value = new Number("100");
+    found_value = fn_call({ ":hundred" });
+    CHECK;
+    progress();
+
+    title("Parameters");
+    lines = {
+        "fn greet -> name {",
+        "<- \"Hello \" + $name + \"!\"",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":greet \"Kal\"" });
+    actual_value = new String("\"Hello Kal!\"");
+    CHECK;
+
+    lines = {
+        "fn add -> x, y {",
+        "<- $x + $y",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":add 200 50" });
+    actual_value = new Number("250");
+    CHECK;
+
+    lines = {
+        "fn times -> n {",
+        "<- $n * 10",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":times 5" });
+    actual_value = new Number("50");
+    CHECK;
+
+    lines = {
+        "fn def_args -> a: 10, b: 20 {",
+        "<- $a * $b",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":def_args" });
+    actual_value = new Number("200");
+    CHECK;
+
+    found_value = fn_call({ ":def_args 30" });
+    actual_value = new Number("600");
+    CHECK;
+
+    found_value = fn_call({ ":def_args 30 30" });
+    actual_value = new Number("900");
+    CHECK;
 
     Functions::gc();
 
