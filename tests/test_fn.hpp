@@ -45,8 +45,8 @@ void test_fn() {
     actual_value = new Number("100");
     found_value = fn_call({ ":hundred" });
     CHECK;
-    progress();
 
+    progress();
     title("Parameters");
     lines = {
         "fn greet -> name {",
@@ -87,13 +87,67 @@ void test_fn() {
     found_value = fn_call({ ":def_args" });
     actual_value = new Number("200");
     CHECK;
-
     found_value = fn_call({ ":def_args 30" });
     actual_value = new Number("600");
     CHECK;
-
     found_value = fn_call({ ":def_args 30 30" });
     actual_value = new Number("900");
+    CHECK;
+
+    lines = {
+        "fn compose {",
+        ":times 20 -> x",
+        ":add $x 100 -> y",
+        "<- $y",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":compose" });
+    actual_value = new Number("300");
+    CHECK;
+
+    /*lines = {
+        "fn add_again {",
+        "<- $(:add $(:add 45 55) $(:add 35 15))",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":add_again" });
+    actual_value = new Number("150");
+    CHECK;*/
+
+    progress();
+    title("Recursive Functions");
+    lines = {
+        "fn fact -> n {",
+        "if $n == 0 || $n == 1 {",
+        "<- 1",
+        "}",
+        "<- $n * $(:fact ($n - 1))",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":fact 5" });
+    actual_value = new Number("120");
+    CHECK;
+
+    lines = {
+        "fn fib -> x {",
+        "if $x == 0 || $x == 1 {",
+        "<- $x",
+        "}",
+        "<- $(:fib ($x - 1)) + $(:fib ($x - 2))",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":fib 4" });
+    actual_value = new Number("3");
+    CHECK;
+    found_value = fn_call({ ":fib 5" });
+    actual_value = new Number("5");
+    CHECK;
+    found_value = fn_call({ ":fib 6" });
+    actual_value = new Number("8");
     CHECK;
 
     Functions::gc();
