@@ -402,8 +402,8 @@ namespace VarTable {
             // Track the scope of the shadowed variable here and match the depth.
             if(itr->second != nullptr /*&& ScopeTable::scope[itr->first] >= depth*/) {
                 //std::cout << "GCing... " << itr->first << " " << itr->second << "Depth: " << depth << "\n";
-                if(itr->second->shadow.size() != 0) {
-                    std::pair<Value*, int> top = itr->second->shadow.top();
+                if(itr->second->shadow != nullptr && itr->second->shadow->size() != 0) {
+                    std::pair<Value*, int> top = itr->second->shadow->top();
                     //std::cout << "Actual Depth: " << top.second << " Current Depth: " << depth << "\n";
                     // Depth mismatch.
                     if(top.second >= depth) {
@@ -412,7 +412,10 @@ namespace VarTable {
                         //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
                         //std::cout << "Top: " << top.first->print() << " Depth: " << depth << "\n";
                         delete top.first;
-                        itr->second->shadow.pop();
+                        itr->second->shadow->pop();
+                        if(itr->second->shadow->size() == 0) {
+                            itr->second->gc_shadow();
+                        }
                         //std::cout << "Shadow Left: " << itr->second->shadow.size() << "\n";
                     }
                 }
@@ -442,8 +445,8 @@ namespace VarTable {
         if(name != "" && memory[name.substr(1)] != nullptr) {
             Value* fetched_var = memory[name.substr(1)];
             Value* ret_var = nullptr;
-            if(fetched_var != nullptr && fetched_var->shadow.size() != 0) {
-                ret_var = fetched_var->shadow.top().first;
+            if(fetched_var != nullptr && fetched_var->shadow != nullptr && fetched_var->shadow->size() != 0) {
+                ret_var = fetched_var->shadow->top().first;
                 // ret_var is nullptr in this case.
 
                 //std::cout << "stack size: " << fetched_var->shadow.size() << " " << ret_var << "\n";
@@ -721,7 +724,10 @@ namespace VarTable {
         }
 
         if(memory[var] != nullptr && var[0] != '$') {
-            memory[var]->shadow.push({ value, depth });
+            if(memory[var]->shadow == nullptr) {
+                memory[var]->init_shadow();
+            }
+            memory[var]->shadow->push({ value, depth });
             is_shadowed = true;
             //return;
         }

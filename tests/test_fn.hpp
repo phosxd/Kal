@@ -53,6 +53,7 @@ void test_shadowing() {
     found_value = VarTable::print("$value");
     check(actual_value, found_value);
 
+    VarTable::gc();
     progress();
 }
 
