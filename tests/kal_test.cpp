@@ -19,6 +19,7 @@ int main() {
     test_parser();
     test_var();
     test_control_flow();
+    test_shadowing();
     test_fn();
 
     exit_successfully();

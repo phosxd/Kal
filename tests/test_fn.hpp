@@ -10,12 +10,50 @@
 #define CHECK check(found_value->print(), actual_value->print()); delete actual_value; delete found_value;
 
 void make_fn(std::vector<std::string> lines) {
-    std::vector<Token> tokens = lexer::tokenize(lines);
+    lexer::tokenize(lines);
 }
 
 Value* fn_call(std::vector<std::string> lines) {
     std::vector<Token> tokens = lexer::tokenize(lines);
     return line_exec(tokens, true);
+}
+
+void test_shadowing() {
+    component("Variable Shadowing");
+
+    std::vector<std::string> lines;
+    std::string actual_value;
+    std::string found_value;
+    std::vector<Token> tokens;
+
+    title("Variable Shadowing");
+
+    lines = {
+        "var sum = 0",
+        "var value = 10",
+        "$sum = $sum + $value",
+        "if 1 == 1 {",
+            "var value = 20",
+            "$sum = $sum + $value",
+            "if 2 == 2 {",
+                "var value = 30",
+                "$sum = $sum + $value",
+            "}",
+        "}"
+    };
+
+    tokens = lexer::tokenize(lines);
+    line_exec(tokens);
+
+    actual_value = "60";
+    found_value = VarTable::print("$sum");
+    check(actual_value, found_value);
+
+    actual_value = "10";
+    found_value = VarTable::print("$value");
+    check(actual_value, found_value);
+
+    progress();
 }
 
 void test_fn() {
