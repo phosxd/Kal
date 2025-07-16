@@ -61,11 +61,18 @@ namespace lib {
         if(kal_pkg_path[kal_pkg_path.size() - 1] == sep) {
             kal_pkg_path += sep;
         }
-        resolved_path << kal_pkg_path
-            << sep
-            << pkg_import.substr(4)
-            << sep
-            << entry_point;
+        resolved_path << kal_pkg_path << sep << pkg_import.substr(4);
+        //    << sep
+        //    << entry_point;
+        if(std::filesystem::is_directory(resolved_path.str())) {
+            resolved_path << sep << entry_point;
+        }
+        else {
+            std::string single_file = resolved_path.str();
+            ensure_extension(single_file, ".kal");
+            return single_file;
+        }
+
         return resolved_path.str();
     }
 
