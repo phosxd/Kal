@@ -71,11 +71,19 @@ int main(int argc, char** argv) {
         (dynamic_cast<List*>(memory["ARGS"]))->items.emplace_back(new String('"' + arg + '"'));
     }
 
+    if(arg_parser.flag_exists("-x")) {
+        std::string pkg_name = arg_parser.get_value("-x");
+        std::vector<Value*>::iterator name_pos = (dynamic_cast<List*>(memory["ARGS"]))->items.begin() + 1;
+        (dynamic_cast<List*>(memory["ARGS"]))->items.insert(name_pos, new String('"' + pkg_name + '"'));
+        file_name = lib::resolve_package(pkg_name, "cli.kal");
+    }
+
     bool is_kast_file = file_name.substr(file_name.size() - 5) == ".kast";
     if(is_kast_file) {
         std::vector<Token> tokens;
         kast::decode(file_name, tokens);
         line_exec(tokens);
+        VarTable::gc();
         return 0;
     }
 
