@@ -638,7 +638,7 @@ std::string eval(std::string expr) {
                 }
                 else {
                     std::string line = a + " " + token + " " + b;
-                    errors::invalid_operation_error(line, "strings", token, a, b);
+                    errors::invalid_operation(call_stack, line, "strings", token, a, b);
                 }
                 continue;
             }
@@ -659,7 +659,7 @@ std::string eval(std::string expr) {
                 }
                 else {
                     std::string line = a + " " + token + " " + b;
-                    errors::invalid_operation_error(line, "values", token, a, b);
+                    errors::invalid_operation(call_stack, line, "values", token, a, b);
                 }
                 continue;
             }

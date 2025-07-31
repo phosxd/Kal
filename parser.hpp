@@ -1,6 +1,6 @@
 #pragma once
 
-#define END std::cout << "syntax error\n"; exit(1)
+#define END std::cout << "syntax error " << __LINE__ << "\n"; exit(1)
 
 #include <iostream>
 #include <vector>

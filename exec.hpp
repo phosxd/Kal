@@ -31,9 +31,6 @@ namespace parser {
     }
 }
 
-int depth = 0;
-std::stack<std::pair<std::string, int>> call_stack;
-
 Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     bool warn = true;

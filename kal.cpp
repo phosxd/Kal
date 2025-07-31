@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
+#include "globals.hpp"
 #include "shell.hpp"
 #include "exec.hpp"
 #include "kast.hpp"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "errors.hpp"
 
 struct Token {
     std::string head = "",
@@ -95,7 +96,7 @@ Config group_6 {
 };
 
 namespace p_config {
-    Config* get_config(const std::string& cmd) {
+    Config* get_config(std::string& line, std::string& cmd) {
         // refactor this into switch-case.
         if(cmd == "exit" || cmd == "warn" || cmd == "stdin" || cmd == "break" || cmd == "continue"/* || cmd == "<-"*/) {
             return &group_1;
@@ -119,8 +120,7 @@ namespace p_config {
             return &group_0;
         }
 
-        // throw error if no instruction is recognized.
-
+        errors::unidentified_keyword(call_stack, line, cmd);
         return &group_0;
     }
 }

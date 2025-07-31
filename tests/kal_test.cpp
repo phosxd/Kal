@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 
+#include "../globals.hpp"
 #include "lib_kal_test.hpp"
 #include "test_arg_parser.hpp"
 #include "test_lexer.hpp"

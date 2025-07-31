@@ -56,7 +56,7 @@ namespace lexer {
         while(line < lines) {
             std::string current_line = source_lines[line];
             std::string head = get_head(current_line);
-            config = p_config::get_config(head);
+            config = p_config::get_config(current_line, head);
             Token token = parser::parse(current_line, config, head);
             if(token.head == "fn") {
                 Fn* function = new Fn(token.values);
@@ -65,7 +65,7 @@ namespace lexer {
                 line++;
                 while(fn_depth != 0) {
                     std::string inner_head = get_head(source_lines[line]);
-                    Config* inner_config = p_config::get_config(inner_head);
+                    Config* inner_config = p_config::get_config(source_lines[line], inner_head);
                     fn_line = parser::parse(source_lines[line], inner_config, inner_head);
                     int values_size = fn_line.values.size();
                     if(values_size != 0 && fn_line.values[values_size - 1] == "{") {
