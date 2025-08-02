@@ -605,6 +605,33 @@ namespace parser {
         return fn_def;
     }
 
+    std::vector<std::string> parse_loop_segments(std::string& text, int& index) {
+        std::vector<std::string> tokens;
+        int begin = index;
+        int size = text.size();
+        if(text.substr(size - 2) != "--") {
+            text += "--";
+            size += 2;
+        }
+        std::cout << text << "\n";
+        while(index < size) {
+            if(text[index] == '"') {
+                skip_string(text, index);
+                index++;
+                continue;
+            }
+            if(match(index, text, "--")) {
+                std::cout << begin << "\n";
+                std::string token = text.substr(begin, index - begin - 2);
+                tokens.emplace_back(token);
+                std::cout << index << "\n";
+                begin = index;
+            }
+            index++;
+        }
+        return tokens;
+    }
+
     //int parse_depth = 0;
     Token parse(std::string& text, Config* config, std::string& head) {
         Token token;
