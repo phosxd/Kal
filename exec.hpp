@@ -304,7 +304,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 int loop_depth = std::get<2>(loop_stack.top());
                 // std::cout << "[" << depth << "]\n";
                 // std::cout << "[" << loop_depth << "]" << "\n";
-                while(loop_stack.size() != 0 && loop_depth != depth + 1) {
+                while(loop_stack.size() != 0 && depth != loop_depth - 1) {
                     line++;
                     if(tokens[line].head == "}") {
                         VarTable::gc(depth);
@@ -312,7 +312,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     }
                 }
                 loop_stack.pop();
-                continue;
                 // std::cout << "Line: " << line << "\n";
                 // std::cout << "Size: " << loop_stack.size() << "\n";
             }
