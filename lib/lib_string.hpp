@@ -98,6 +98,11 @@ namespace lib {
         return required_line;
     }
 
+    std::string trim(std::string& line) {
+        const std::string half_trimmed = trim_leading(line);
+        return trim_trailing(half_trimmed);
+    }
+
     std::string vector_to_string(const std::vector<std::string>& text_vector, std::string join_text = " ", int begin = 0, std::string padding = "") {
         std::string complete_text = "";
         int vector_size = text_vector.size();

@@ -140,4 +140,8 @@ namespace errors {
     void key_error(CALL_STACK, std::string& line, std::string& key) {
         throw_err(call_stack, line, "Key", "Key {} does not exist.", { key });
     }
+
+    void invalid_else(CALL_STACK, std::string& line) {
+        throw_err(call_stack, line, "Invalid Control Flow", "Cannot use an {} without a valid {}.", { "else", "if" });
+    }
 }

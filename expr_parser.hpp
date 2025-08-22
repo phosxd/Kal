@@ -323,6 +323,10 @@ bool is_list(std::string& structure) {
 
 std::string eval(std::string expr) {
     //std::cout << "Expr: [" << expr << "]\n";
+    expr = lib::trim(expr);
+    if(expr == "") {
+        return expr;
+    }
     std::string result;
     std::string current_op = "";
     std::queue<std::string> rpn;

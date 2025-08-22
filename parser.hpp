@@ -622,7 +622,7 @@ namespace parser {
             }
             if(match(index, text, "--")) {
                 std::string token = text.substr(begin, index - begin - 2);
-                tokens.emplace_back(token);
+                tokens.emplace_back(lib::trim(token));
                 begin = index;
             }
             index++;
