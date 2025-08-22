@@ -208,6 +208,30 @@ void test_control_flow() {
     };
     RUN_CASE("3");
 
+    progress();
+    title("line_exec() - if-elif-else");
+
+    lines = {
+        "$value = 0",
+        "var data = 3",
+        "if $data == 1 {",
+            "$value = 100",
+        "}",
+        "elif $data == 2 {",
+            "$value = 200",
+        "}",
+        "elif $data == 3 {",
+            "$value = 300",
+        "}",
+        "elif $data == 4 {",
+            "$value = 400",
+        "}",
+        "else {",
+            "$value = 999",
+        "}"
+    };
+    RUN_CASE("300");
+
     VarTable::gc();
     progress();
 
@@ -275,6 +299,27 @@ void test_control_flow() {
                 "$j = $j + 1",
             "}",
             "$i = $i + 1",
+        "}"
+    };
+    RUN_CASE("120");
+
+    lines = {
+        "$value = 0",
+        "loop p = 1 -- $p <= 5 -- $p = $p + 1 {",
+            "$value = $value + $p",
+        "}"
+    };
+    RUN_CASE("15");
+
+    lines = {
+        "$value = 0",
+        "loop a = 1 -- $a <= 5 -- $a = $a + 1 {",
+            "loop b = 1 -- $b <= 5 -- $b = $b + 1 {",
+                "if $a == $b {",
+                    "continue",
+                "}",
+                "$value = $value + $a + $b",
+            "}",
         "}"
     };
     RUN_CASE("120");

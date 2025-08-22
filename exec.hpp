@@ -218,12 +218,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 else if(segments > 1) {
                     //std::pair<bool, int> init_top = init_loop.top();
                     if(init_loop.empty() || init_loop.top() != depth) {
-                        // int assign_idx = 0;
-                        // std::vector<std::string> assignments = parser::parse_init(tokens[line].values[0], assign_idx);
-                        // int total_assign = assignments.size();
-                        // for(int each_assign = 0; each_assign < total_assign; each_assign += 2) {
-                        //     VarTable::set(assignments[each_assign], assignments[each_assign + 1], nullptr, VAR, false, depth - 1);
-                        // }
                         VarTable::init_by_string(tokens[line].values[0], depth - 1);
                         init_loop.push(depth);
                     }
@@ -271,12 +265,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 if(std::get<0>(top)) {
                     line = std::get<1>(top);
                     if(tokens[line].values.size() - 1 == 3) {
-                        // int assign_idx = 0;
-                        // std::vector<std::string> assignments = parser::parse_init(tokens[line].values[2], assign_idx);
-                        // int total_assigns = assignments.size();
-                        // for(int each_assign = 0; each_assign < total_assigns; each_assign += 2) {
-                        //     VarTable::set(assignments[each_assign], assignments[each_assign + 1]);
-                        // }
                         VarTable::init_by_string(tokens[line].values[2], depth);
                     }
                 }
