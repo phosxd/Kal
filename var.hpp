@@ -396,40 +396,38 @@ namespace ScopeTable {
 namespace VarTable {
     void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0);
 
-    void gc(int depth = 0) {
-        //std::cout << "GC called!\n";
-        std::unordered_map<std::string, Value*>::iterator itr, end = memory.end();
-        for(itr = memory.begin(); itr != end; itr++) {
-            // Track the scope of the shadowed variable here and match the depth.
-            if(itr->second != nullptr /*&& ScopeTable::scope[itr->first] >= depth*/) {
-                //std::cout << "GCing... " << itr->first << " " << itr->second << "Depth: " << depth << "\n";
-                if(itr->second->shadow != nullptr && itr->second->shadow->size() != 0) {
-                    std::pair<Value*, int> top = itr->second->shadow->top();
-                    //std::cout << "Actual Depth: " << top.second << " Current Depth: " << depth << "\n";
-                    // Depth mismatch.
-                    if(top.second >= depth) {
-                        //std::cout << "[" << itr->first << "] " << depth << "\n";
-                        //std::cout << "Top First: " << top.first << "\n";
-                        //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
-                        //std::cout << "Top: " << top.first->print() << " Depth: " << depth << "\n";
-                        delete top.first;
-                        itr->second->shadow->pop();
-                        if(itr->second->shadow->size() == 0) {
-                            itr->second->gc_shadow();
-                        }
-                        //std::cout << "Shadow Left: " << itr->second->shadow.size() << "\n";
+    void gc_value(std::string name, Value* val) {
+        if(val != nullptr) {
+            if(val->shadow != nullptr && val->shadow->size() != 0) {
+                std::pair<Value*, int> top = val->shadow->top();
+                if(top.second >= depth) {
+                    delete top.first;
+                    val->shadow->pop();
+                    if(val->shadow->size() == 0) {
+                        val->gc_shadow();
                     }
                 }
-                else if(ScopeTable::scope[itr->first] >= depth) {
-                    //std::cout << "itr->first: " << itr->first << " depth: " << depth << "\n";
-                    //std::cout << itr->first << " Initial Value: " << itr->second->print() << "\n";
-                    delete itr->second;
-                    memory[itr->first] = nullptr;
-                }
             }
+            else if(ScopeTable::scope[name] >= depth) {
+                delete val;
+                memory[name] = nullptr;
+            }
+        }
+    }
+
+    void gc(int depth = 0) {
+        std::unordered_map<std::string, Value*>::iterator itr, end = memory.end();
+        for(itr = memory.begin(); itr != end; itr++) {
+            gc_value(itr->first, itr->second);
         }
         if(depth == 0) {
             Functions::gc();
+        }
+    }
+
+    void gc_by_names(std::vector<std::string>& var_names) {
+        for(std::string& name : var_names) {
+            gc_value(name, memory[name]);
         }
     }
 
@@ -917,13 +915,17 @@ namespace VarTable {
         }
     }
 
-    void init_by_string(std::string& init_string, int depth) {
+    std::vector<std::string> init_by_string(std::string& init_string, int depth) {
         int assign_idx = 0;
+        std::vector<std::string> var_names;
         std::vector<std::string> assignments = parser::parse_init(init_string, assign_idx);
         int total_assigns = assignments.size();
+        var_names.reserve(total_assigns / 2);
         for(int each_assign = 0; each_assign < total_assigns; each_assign += 2) {
             set(assignments[each_assign], assignments[each_assign + 1], nullptr, VAR, false, depth);
+            var_names.emplace_back(assignments[each_assign]);
         }
+        return var_names;
     }
 
     std::string print(std::string var) {

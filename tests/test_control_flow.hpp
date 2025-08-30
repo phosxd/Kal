@@ -387,6 +387,18 @@ void test_control_flow() {
     };
     RUN_CASE("15");
 
+    lines = {
+        "$value = 0",
+        "var shadowed = 10",
+        "loop shadowed = 1 -- $shadowed <= 5 -- $shadowed = $shadowed + 1 {",
+            "$value = $value + $shadowed",
+        "}"
+    };
+    RUN_CASE("15");
+    std::string found_value = VarTable::print("$shadowed");
+    std::string actual_value = "10";
+    check(found_value, actual_value);
+
     VarTable::gc();
     progress();
 }

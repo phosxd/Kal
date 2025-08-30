@@ -606,7 +606,10 @@ namespace parser {
     }
 
     std::vector<std::string> parse_loop_segments(std::string& text) {
-        std::vector<std::string> tokens;
+        std::vector<std::string> tokens = {};
+        if(lib::trim(text) == "") {
+            return tokens;
+        }
         int index = 0;
         int begin = index;
         int size = text.size();

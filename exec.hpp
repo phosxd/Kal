@@ -40,7 +40,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
     //int depth = 0;
     int current_depth = 0;
     std::stack<std::pair<bool, int>> conditional_stack;
-    std::stack<int> init_loop;
+    std::stack<std::pair<int, std::vector<std::string>>> init_loop;
     std::stack<std::tuple<bool, int, int>> loop_stack;
 
     while(line < total_tokens) {
@@ -224,10 +224,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                         //std::cout << "Init Size: " << init_loop.size() << "\n";
                         //if(!init_loop.empty())
                         //    std::cout << init_loop.top() << " " << depth << "\n";
-                        if(init_loop.empty() || init_loop.top() != depth) {
+                        if(init_loop.empty() || init_loop.top().first != depth) {
                             //std::cout << "[" << tokens[line].values[0] << "]\n";
-                            VarTable::init_by_string(tokens[line].values[0], depth - 1);
-                            init_loop.push(depth);
+                            std::vector<std::string> var_names = VarTable::init_by_string(tokens[line].values[0], depth - 1);
+                            init_loop.push({ depth, var_names });
                         }
                     }
                     if(segments >= 2 && tokens[line].values[1] != "") {
@@ -255,6 +255,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     depth--;
                     loop_stack.pop();
                     if(!init_loop.empty()) {
+                        VarTable::gc_by_names(init_loop.top().second);
                         init_loop.pop();
                     }
                     continue;
@@ -323,6 +324,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 }
                 loop_stack.pop();
                 if(!init_loop.empty()) {
+                    VarTable::gc_by_names(init_loop.top().second);
                     init_loop.pop();
                 }
                 // std::cout << "Line: " << line << "\n";
