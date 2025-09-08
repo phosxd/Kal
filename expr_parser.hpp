@@ -18,6 +18,7 @@ namespace VarTable {
     Value* get(std::string, std::vector<std::string>, bool, bool, bool);
 }
 
+std::string eval(std::deque<std::string>);
 bool compare(std::string, std::string);
 Value* line_exec(std::vector<Token>&, bool);
 
@@ -321,15 +322,77 @@ bool is_list(std::string& structure) {
     return false;
 }
 
-std::string eval(std::string expr) {
-    //std::cout << "Expr: [" << expr << "]\n";
-    expr = lib::trim(expr);
-    if(expr == "") {
-        return expr;
+std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
+    std::deque<std::string> expr;
+    //rpn.pop_back();
+    std::string back = rpn.back();
+    if((back[0] >= '0' && back[0] <= '9') || back[0] == '$' || back[0] == '"') {
+        expr.push_back(back);
+        rpn.pop_back();
     }
-    std::string result;
+    else {
+        expr.push_front(back);
+        rpn.pop_back();
+
+        std::string second = rpn.back();
+        if(!((second[0] >= '0' && second[0] <= '9') || second[0] == '$' || second[0] == '"')) {
+            std::deque<std::string> second_expr = extract_operand(rpn);
+            while(!second_expr.empty()) {
+                expr.push_front(second_expr.back());
+                second_expr.pop_back();
+            }
+        }
+        else {
+            expr.push_front(second);
+            rpn.pop_back();
+        }
+
+        if(back != "n" && back != "!" && back != "~") {
+            std::string first = rpn.back();
+            if(!((first[0] >= '0' && first[0] <= '9') || first[0] == '$' || first[0] == '"')) {
+                std::deque<std::string> first_expr = extract_operand(rpn);
+                //print_rpn(first_expr);
+                while(!first_expr.empty()) {
+                    expr.push_front(first_expr.back());
+                    first_expr.pop_back();
+                }
+            }
+            else {
+                expr.push_front(first);
+                rpn.pop_back();
+            }
+        }
+    }
+    return expr;
+}
+
+
+void perform_shortcircuit(std::deque<std::string>& rpn) {
+    std::string op = rpn.back();
+    rpn.pop_back();
+    std::deque<std::string> second = extract_operand(rpn);
+    std::deque<std::string> first = extract_operand(rpn);
+    std::string first_result = eval(first);
+    if((op == "&&" && first_result == "0") || (op == "||" && first_result == "1")) {
+        rpn.push_back(first_result);
+    }
+    else {
+        while(!first.empty()) {
+            rpn.push_back(first.front());
+            first.pop_front();
+        }
+        while(!second.empty()) {
+            rpn.push_back(second.front());
+            second.pop_front();
+        }
+        rpn.push_back(op);
+    }
+}
+
+std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
+    //std::cout << "Expr: [" << expr << "]\n";
     std::string current_op = "";
-    std::queue<std::string> rpn;
+    std::deque<std::string> rpn;
     std::stack<std::string> operators;
 
     int index = 0;
@@ -351,30 +414,31 @@ std::string eval(std::string expr) {
         }
         else if(expr[index] == '"') {
             std::string value = parser::parse_string(expr, index);
-            rpn.push(value);
+            rpn.push_back(value);
             index++;
             continue;
         }
         else if(expr[index] == '$' && expr[index + 1] == '(') {
-            rpn.push(parser::parse_fexpr(expr, index));
+            rpn.push_back(parser::parse_fexpr(expr, index));
             //index++;
             continue;
         }
         else if(expr[index] == '$') {
             std::string var = parser::parse_variable(expr, index);
             std::string val = expand_var(var);
-            rpn.push(val);
+            rpn.push_back(val);
+            index--;
         }
         else if(expr[index] == '[') {
-            rpn.push(parser::extract_list(expr, '[', index));
+            rpn.push_back(parser::extract_list(expr, '[', index));
         }
         else if(expr[index] == '#') {
             index++;
-            rpn.push('#' + parser::extract_list(expr, '(', index));
+            rpn.push_back('#' + parser::extract_list(expr, '(', index));
         }
         else if(parser::match(index, expr, "f[", false)) {
             std::string line = parser::extract_fstr(expr, index);
-            rpn.push(fstr(line));
+            rpn.push_back(fstr(line));
         }
         else if((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
             int begin = index;
@@ -382,26 +446,26 @@ std::string eval(std::string expr) {
                 index++;
             }
             std::string value = expr.substr(begin, index - begin);
-            rpn.push(value);
+            rpn.push_back(value);
             index--;
         }
         else if(match(expr, parser::null_val, index)) {
-            rpn.push(parser::null_val);
+            rpn.push_back(parser::null_val);
             index++;
             continue;
         }
         else if(match(expr, ops::integer, index)) {
-            rpn.push(ops::integer);
+            rpn.push_back(ops::integer);
             index++;
             continue;
         }
         else if(match(expr, ops::floating, index)) {
-            rpn.push(ops::floating);
+            rpn.push_back(ops::floating);
             index++;
             continue;
         }
         else if(match(expr, ops::string, index)) {
-            rpn.push(ops::string);
+            rpn.push_back(ops::string);
             index++;
             continue;
         }
@@ -410,7 +474,12 @@ std::string eval(std::string expr) {
         }
         else if(match(expr, ops::right, index)) {
             while(!operators.empty() && operators.top() != ops::left) {
-                rpn.push(operators.top());
+                std::string top_op = operators.top();
+                rpn.push_back(top_op);
+                if(shortcircuit && (top_op == "&&" || top_op == "||")) {
+                    //rpn.pop_back();
+                    perform_shortcircuit(rpn); 
+                }
                 operators.pop();
             }
             operators.pop();
@@ -445,7 +514,7 @@ std::string eval(std::string expr) {
             SET_CURRENT_OP(ops::as);
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
-                rpn.push(operators.top());
+                rpn.push_back(operators.top());
                 operators.pop();
             }
             operators.push(current_op);
@@ -456,43 +525,63 @@ std::string eval(std::string expr) {
 
 
     while(!operators.empty()) {
-        rpn.push(operators.top());
-        operators.pop();
+        if(shortcircuit) {
+            std::string top_op = operators.top();
+            if(top_op == "&&" || top_op == "||") {
+                // std::cout << "Top: " << top_op << "\n";
+                // ///
+                // std::deque<std::string> rpn_copy = rpn;
+                // std::cout << "\tRPN: ";
+                // while(!rpn_copy.empty()) {
+                //     std::cout << rpn_copy.front() << " ";
+                //     rpn_copy.pop_front();
+                // }
+                // std::cout << "\n";
+                // ///
+                rpn.push_back(top_op);
+                perform_shortcircuit(rpn);
+                operators.pop();
+            }
+            else {
+                rpn.push_back(operators.top());
+                operators.pop();
+            }
+        }
+        else {
+            rpn.push_back(operators.top());
+            operators.pop();
+        }
     }
 
+    return rpn;
+}
+
+
+std::string eval(std::deque<std::string> rpn) {
+    /*expr = lib::trim(expr);
+    if(expr == "") {
+        return expr;
+    }*/
+
     std::string a, b;
+    std::string result;
     double x = 0, y = 0;
     std::string token;
     std::stack<std::string> numbers;
 
-    /*while(!rpn.empty()) {
-        std::cout << rpn.front() << " ";
-        rpn.pop();
-    }
-    std::cout << "\n";
-    exit(1);*/
+    //std::deque<std::string> rpn = make_rpn(expr);
 
     std::string rpn_front = rpn.front();
     if(rpn.size() == 1 && (rpn_front[0] != '$' || rpn_front[1] != '(')) {
         if(rpn_front[0] >= '0' && rpn_front[0] <= '9') {
             result = lib::trim_num(rpn_front);
-            rpn.pop();
+            rpn.pop_front();
             return result;
         }
-        rpn.pop();
+        rpn.pop_front();
         return rpn_front;
     }
 
-    /*while(!rpn.empty()) {
-        std::cout << rpn.front() << " ";
-        rpn.pop();
-    }
-    while(!operators.empty()) {
-        std::cout << operators.top() << " ";
-        operators.pop();
-    }
-    std::cout << "\n";
-    exit(1);*/
     while(!rpn.empty()) {
         token = rpn.front();
         //std::cout << "Operand: " << token << "\n";
@@ -520,7 +609,7 @@ std::string eval(std::string expr) {
             }
             //token = VarTable::print(token);
         }
-        rpn.pop();
+        rpn.pop_front();
         //std::cout << "Token: [" << token << "] Order: " << order(token) << std::endl;
         if(!order(token)) {
             numbers.push(token);
@@ -703,6 +792,7 @@ std::string eval(std::string expr) {
             }
 
             if(!is_num(a) || !is_num(b)) {
+                std::string expr = a + " " + token + " " + b;
                 errors::invalid_operation(call_stack, expr, "values", token, a, b);
             }
             x = std::stod(a);
@@ -734,4 +824,13 @@ std::string eval(std::string expr) {
     result = lib::trim_num(numbers.top());
     numbers.pop();
     return result;
+}
+
+std::string eval(std::string expr) {
+    expr = lib::trim(expr);
+    if(expr == "") {
+        return expr;
+    }
+    std::deque<std::string> rpn = make_rpn(expr);
+    return eval(rpn);
 }
