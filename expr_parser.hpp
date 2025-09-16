@@ -592,7 +592,12 @@ std::string eval(std::deque<std::string> rpn) {
             //std::cout << "Function Body:\n" << function_call[0].head << " " << function_call[0].values[0] << "\n";
             //std::cout << "Shadow: " << VarTable::get("$n", {}, false, true, true)->shadow.size() << std::endl;
             Value* result = line_exec(function_call, true);
-            token = result->print();
+            if(result != nullptr) {
+                token = result->print();
+            }
+            else {
+                token = "null";
+            }
             //std::cout << "Eval Token: " << token << std::endl;
             //std::cout << "Token: " << token << "\n";
             // std::cout << "Ret Val: " << token << "\n";

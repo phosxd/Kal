@@ -104,7 +104,7 @@ namespace p_config {
         else if(cmd == "var" || cmd == "const" || cmd == "static" || cmd == "inert") {
             return &group_2;
         }
-        else if(cmd[0] == ':' || cmd == "style" || cmd == "stdout") {
+        else if(cmd[0] == ':' || cmd == "style" || cmd == "stdout" || cmd == "defer") {
             return &group_3;
         }
         else if(cmd == "if" || cmd == "else" || cmd == "elif" || cmd == "loop" || cmd == "}") {

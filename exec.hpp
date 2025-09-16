@@ -31,6 +31,8 @@ namespace parser {
     }
 }
 
+std::stack<std::pair<std::string, int>> defer_stack;
+
 Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     bool warn = true;
@@ -114,11 +116,18 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             //std::cout << "Start Depth: " << depth << "\n";
             Value* return_value = line_exec(fn->body);
             //std::cout << "End Depth: " << depth << "\n";
-            if(return_value != nullptr && !auto_return) {
+            if(/*return_value != nullptr &&*/ !auto_return) {
+                if(return_value == nullptr) {
+                    return_value = new Null();
+                }
                 VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
             }
             //delete return_value;
             // fact value attains accurate value when depth-- here and not after gc().
+            while(!defer_stack.empty() && defer_stack.top().second >= depth) {
+                eval(defer_stack.top().first);
+                defer_stack.pop();
+            }
             VarTable::gc(depth);
             depth--;
             call_stack.pop();
@@ -329,6 +338,17 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 }
                 // std::cout << "Line: " << line << "\n";
                 // std::cout << "Size: " << loop_stack.size() << "\n";
+            }
+        }
+
+        else if(ins == "defer") {
+            int total = cmd.values.size();
+            if(depth == 0) {
+                std::cout << "defer must be used inside a function.\n";
+                exit(0);
+            }
+            for(int idx = total - 1; idx >= 0; idx--) {
+                defer_stack.push(std::pair<std::string, int> { cmd.values[idx], depth });
             }
         }
 

@@ -425,6 +425,7 @@ namespace parser {
         }
         else if(text[index] == '$' && text[index + 1] == '(') {
             required_token = parse_fexpr(text, index);
+            index--;
         }
         else if(text[index] == '$') {
             required_token = parse_variable(text, index);
