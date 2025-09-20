@@ -111,6 +111,7 @@ namespace ops {
                       left = "(",
                       right = ")",
                       as = "as",
+                      walrus = ":=",
                       integer = "int",
                       floating = "float",
                       string = "str";
@@ -126,21 +127,22 @@ bool match(std::string& text, std::string pattern, int& index) {
 }
 
 int order(std::string op) {
-    if(op == ops::as)                                                            return 15;
-    else if (op == ops::if_null)                                                 return 14;
-    else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 13;
-    else if (op == ops::exp)                                                     return 12;
-    else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 11;
-    else if (op == ops::add || op == ops::sub)                                   return 10;
-    else if (op == ops::l_shift || op == ops::r_shift)                           return 9;
-    else if (op == ops::lt || op == ops::lte || op == ops::gt || op == ops::gte) return 8;
-    else if (op == ops::eq || op == ops::neq)                                    return 7;
-    else if (op == ops::bit_and)                                                 return 6;
-    else if (op == ops::bit_xor)                                                 return 5;
-    else if (op == ops::bit_or)                                                  return 4;
-    else if (op == ops::log_and)                                                 return 3;
-    else if (op == ops::log_or)                                                  return 2;
-    else if (op == ops::t_if || op == ops::t_else)                               return 1;
+    if(op == ops::as)                                                            return 16;
+    else if (op == ops::if_null)                                                 return 15;
+    else if (op == ops::negative || op == ops::log_not || op == ops::bit_not)    return 14;
+    else if (op == ops::exp)                                                     return 13;
+    else if (op == ops::mul || op == ops::div || op == ops::mod)                 return 12;
+    else if (op == ops::add || op == ops::sub)                                   return 11;
+    else if (op == ops::l_shift || op == ops::r_shift)                           return 10;
+    else if (op == ops::lt || op == ops::lte || op == ops::gt || op == ops::gte) return 9;
+    else if (op == ops::eq || op == ops::neq)                                    return 8;
+    else if (op == ops::bit_and)                                                 return 7;
+    else if (op == ops::bit_xor)                                                 return 6;
+    else if (op == ops::bit_or)                                                  return 5;
+    else if (op == ops::log_and)                                                 return 4;
+    else if (op == ops::log_or)                                                  return 3;
+    else if (op == ops::t_if || op == ops::t_else)                               return 2;
+    else if (op == ops::walrus)                                                  return 1;
     return 0;
 }
 
@@ -509,6 +511,7 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
             SET_CURRENT_OP(ops::bit_or);
             SET_CURRENT_OP(ops::if_null);
             SET_CURRENT_OP(ops::negative);
+            SET_CURRENT_OP(ops::walrus);
             SET_CURRENT_OP(ops::t_if);
             SET_CURRENT_OP(ops::t_else);
             SET_CURRENT_OP(ops::as);
