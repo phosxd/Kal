@@ -15,7 +15,7 @@
 
 namespace parser {
     void std_out(std::string out_text) {
-        if(out_text[0] == '$') {
+        if(/*out_text[0] == '$'*/ parser::is_var(out_text[0])) {
             std::cout << lib::resolve_string(VarTable::print(out_text));
             return;
         }
@@ -68,7 +68,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 //result = VarTable::print(result);
                 //return copy(VarTable::get(result, {}, true, true));
             }*/
-            return_value = (result[0] == '$') ? copy(VarTable::get(result, {}, true, true)) : make_value(result);
+            return_value = (/*result[0] == '$'*/ parser::is_var(result[0])) ? copy(VarTable::get(result, {}, true, true)) : make_value(result);
             // TODO: send this result value to the outer scope and assign it to the target variable.
             //return new Value();
             int original_depth = call_stack.top().second;
@@ -99,7 +99,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 }*/
                 // std::cout << fn->init[arg * 2] << ": " << r_val << " (" << depth <<")" << "\n";
                 //std::cout << "Var: " << fn->init[arg * 2] << " Val: " << eval(r_val) << "\n";
-                VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth);
+                VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth, true);
             }
 
             int all = (fn->init.size() / 2);
@@ -108,7 +108,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 if(r_val[0] == '(') {
                     r_val = eval(r_val);
                 }
-                VarTable::set(fn->init[rest * 2], r_val, nullptr, VAR, false, depth);
+                VarTable::set(fn->init[rest * 2], r_val, nullptr, VAR, false, depth, true);
                 //std::cout << fn->init[2*rest] << "(" << (2*rest) << ")" << " : " << fn->init[2*rest + 1] << "(" << (2*rest + 1) << ")" << "\n";
             }
 
@@ -394,7 +394,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             int vars = cmd.init.size();
             bool is_static = ins == "static";
             for(int each = 0; each < vars; each += 2) {
-                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth);
+                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth, true);
             }
         }
 
@@ -425,9 +425,16 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             //var.read_var(var.expand_var(cmd[1]));
             var.read_var(cmd.values[0]);
         }*/
+        if(ins == "" && cmd.init.size() > 0) {
+            int total_reassigns = cmd.init.size();
+            for(int each_reassign = 0; each_reassign < total_reassigns; each_reassign += 2) {
+                VarTable::set(cmd.init[each_reassign], cmd.init[each_reassign + 1], nullptr, VAR, false, depth);
+            }
+        }
 
         line++;
     }
+
 
     std::cout << style::style["reset"];
 

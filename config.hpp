@@ -116,11 +116,11 @@ namespace p_config {
         else if(cmd == "<-") {
             return &group_6;
         }
-        else if(cmd[0] == '$') {
+        /*else if(cmd[0] == '$') {
             return &group_0;
-        }
+        }*/
 
-        errors::unidentified_keyword(call_stack, line, cmd);
+        //errors::unidentified_keyword(call_stack, line, cmd);
         return &group_0;
     }
 }

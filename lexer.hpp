@@ -39,7 +39,7 @@ namespace lexer {
         }
         else {
             int head_pos = 0;
-            while(current_line[head_pos] != ' ' && current_line[head_pos] != '\t' && current_line[head_pos] != '\n') {
+            while(current_line[head_pos] != ' ' && current_line[head_pos] != '\t' && current_line[head_pos] != '\n' && current_line[head_pos] != '=') {
                 head_pos++;
             }
             head = current_line.substr(0, head_pos);

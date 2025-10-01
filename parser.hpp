@@ -115,9 +115,9 @@ namespace parser {
         int begin = index;
         int text_pos = index;
         int text_size = text.size();
-        if(text[index] == '$') {
+        /*if(text[index] == '$') {
             index++;
-        }
+        }*/
         if(text[index] == '&') {
             index++;
         }
@@ -218,7 +218,7 @@ namespace parser {
     void skip_variable(std::string var, int& index) {
         int size = var.size();
         while(index < size) {
-            if(var[index] == '$' || var[index] == '&' || is_alpha(var[index]) || var[index] == '_' || (var[index] >= 0 && var[index] <= 9)) {
+            if(/*var[index] ==  || */var[index] == '&' || is_alpha(var[index]) || var[index] == '_' || (var[index] >= 0 && var[index] <= 9)) {
                 index++;
             }
             else {
@@ -308,7 +308,7 @@ namespace parser {
             if(text[index] == '[') {
                 skip_list(text, text[index], index);
             }
-            if(text[index] == '$') {
+            if(/*text[index] == '$'*/ is_var(text[index])) {
                 skip_variable(text, index);
             }
             while(text[index] != ',') {
@@ -662,7 +662,7 @@ namespace parser {
                 index++;
                 continue;
             }
-            if(text[index] == '$' && !config->head) {
+            if(config->init_list && !config->head && is_var(text[index])) {
                 token.init = parse_init(text, index);
                 continue;
             }

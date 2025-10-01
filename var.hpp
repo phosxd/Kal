@@ -59,7 +59,7 @@ Value* make_value(std::string value) {
     else if(value == "null") {
         val = new Null();
     }
-    else if(value[0] == '$') {
+    else if(/*value[0] == '$'*/ parser::is_var(value[0])) {
         val = VarTable::get(value, {});
     }
     return val;
@@ -566,7 +566,7 @@ namespace VarTable {
         //
         uint64_t len = items.size();
         if(structure != "" && data_ptr == nullptr) {
-            if(structure[0] == '$') {
+            if(/*structure[0] == '$'*/ parser::is_var(structure[0])) {
                 packed_items = get(structure, {}, true, true);
             }
             else {
@@ -656,7 +656,7 @@ namespace VarTable {
 
         //std::cout << "eval: " << data << std::endl;
         Value* ptr = VarTable::get(var/*.substr(1)*/, {}, true, true);
-        if(/*var[0] == '$'*/ ptr != nullptr && parser::is_var(var[0])) {
+        if(/*var[0] == '$'*/ ptr != nullptr && !allow_shadowing && parser::is_var(var[0])) {
             // TODO: the same for Strings. (DONE)
             // TODO: the impl is done for literals, add resolve code for vars and refs. (DONE)
             //std::cout << "Mem Value = " << ptr << "\n";
@@ -735,7 +735,7 @@ namespace VarTable {
             //return;
         }
 
-        if(/*var[0] == '$'*/ ptr != nullptr && parser::is_var(var[0])) {
+        if(/*var[0] == '$'*/ ptr != nullptr && !allow_shadowing && parser::is_var(var[0])) {
             //
             //
             std::string v_name = var/*.substr(1)*/;
@@ -1101,7 +1101,7 @@ bool compare(std::string first, std::string second) {
     Value* b = nullptr;
     bool result = true;
     bool a_temp = false, b_temp = false;
-    if(first[0] == '$') {
+    if(/*first[0] == '$'*/ parser::is_var(first[0])) {
         a = VarTable::get(first, {}, true, true);
     }
     else if(first[0] == '[') {
@@ -1113,7 +1113,7 @@ bool compare(std::string first, std::string second) {
         a_temp = true;
     }
 
-    if(second[0] == '$') {
+    if(/*second[0] == '$'*/ parser::is_var(second[0])) {
         b = VarTable::get(second, {}, true, true);
     }
     else if(second[0] == '[') {
@@ -1140,7 +1140,7 @@ bool compare(std::string first, std::string second) {
 bool compare(Value* first, std::string second) {
     Value* b = nullptr;
     bool temp = false;
-    if(second[0] == '$') {
+    if(/*second[0] == '$'*/ parser::is_var(second[0])) {
         b = VarTable::get(second, {}, true, true);
     }
     if(second[0] == '[') {
