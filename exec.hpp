@@ -120,7 +120,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             //std::cout << "End Depth: " << depth << "\n";
             if(/*return_value != nullptr &&*/ !auto_return) {
                 if(return_value == nullptr) {
-                    // causes memory leak because of auto return issue.
                     return_value = new Null();
                 }
                 // only set this is target exists.
@@ -128,6 +127,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     // figure out if i need to allow shadowing or not. [TODO].
                     // if variable exists, don't allow, if exists, allow.
                     VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
+                }
+                else {
+                    delete return_value;
                 }
             }
             //delete return_value;
