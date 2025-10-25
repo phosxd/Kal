@@ -118,7 +118,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 if(cmd.target != "") {
                     // figure out if i need to allow shadowing or not. [TODO]. [DONE]
                     // if variable exists, don't allow, if exists, allow. [DONE]
-                    bool allow_shadowing = memory[cmd.target] != nullptr;
+                    bool allow_shadowing = VarTable::get(cmd.target, {}, true, true) != nullptr;
                     VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1, allow_shadowing);
                     //std::cout << "Targeting " << cmd.target << " to " << return_value->print() << "\n";
                     //if(fn_name == "add") std::cout << "Here\n";

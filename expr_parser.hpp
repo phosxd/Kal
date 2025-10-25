@@ -602,6 +602,14 @@ std::string eval(std::deque<std::string> rpn) {
         else if(/*token[0] == '$'*/ parser::is_var(token[0]) && token[1] != '&') {
             // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true);
+            /// does not eval references in case of walrus operator.
+            rpn.pop_front();
+            if(rpn.front() == ":=") {
+                numbers.push(token);
+                continue;
+            }
+            rpn.push_front(token);
+            ///
             if(temp == nullptr) {
                 rpn.pop_front();
                 numbers.push(token);
