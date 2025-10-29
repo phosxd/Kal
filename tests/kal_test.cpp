@@ -16,7 +16,7 @@ int main() {
     test_arg_parser();
     test_preprocessor();
     test_lexer();
-    //test_expr_parser();
+    test_expr_parser();
     test_parser();
     test_var();
     test_control_flow();

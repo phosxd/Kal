@@ -85,7 +85,7 @@ std::string list_mul(std::string& list, double& times) {
 }
 
 namespace ops {
-    const std::string negative = "n",
+    const std::string negative = "0n",
                       log_not = "!",
                       bit_not = "~",
                       exp = "**",
@@ -337,7 +337,7 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
             rpn.pop_back();
         }
 
-        if(back != "n" && back != "!" && back != "~") {
+        if(back != "0n" && back != "!" && back != "~") {
             std::string first = rpn.back();
             if(!((first[0] >= '0' && first[0] <= '9') || /*first[0] == '$'*/ (parser::is_var(second[0]) && second[1] != '&') || first[0] == '"')) {
                 std::deque<std::string> first_expr = extract_operand(rpn);
@@ -382,6 +382,7 @@ void perform_shortcircuit(std::deque<std::string>& rpn) {
 std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
     //std::cout << "Expr: [" << expr << "]\n";
     std::string current_op = "";
+    std::string prev_op = "";
     std::deque<std::string> rpn;
     std::stack<std::string> operators;
 
@@ -405,11 +406,14 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
         else if(expr[index] == '"') {
             std::string value = parser::parse_string(expr, index);
             rpn.push_back(value);
+            prev_op = value;
             index++;
             continue;
         }
         else if(expr[index] == '$' && expr[index + 1] == '(') {
-            rpn.push_back(parser::parse_fexpr(expr, index));
+            std::string value = parser::parse_fexpr(expr, index);
+            rpn.push_back(value);
+            prev_op = value;
             //index++;
             continue;
         }
@@ -417,18 +421,25 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
             std::string var = parser::parse_variable(expr, index);
             std::string val = expand_var(var);
             rpn.push_back(val);
+            prev_op = val;
             index--;
         }
         else if(expr[index] == '[') {
-            rpn.push_back(parser::extract_list(expr, '[', index));
+            std::string list_value = parser::extract_list(expr, '[', index);
+            rpn.push_back(list_value);
+            prev_op = list_value;
         }
         else if(expr[index] == '#') {
             index++;
-            rpn.push_back('#' + parser::extract_list(expr, '(', index));
+            std::string dict_value = '#' + parser::extract_list(expr, '(', index);
+            rpn.push_back(dict_value);
+            prev_op = dict_value;
         }
         else if(parser::match(index, expr, "f[", false)) {
             std::string line = parser::extract_fstr(expr, index);
-            rpn.push_back(fstr(line));
+            std::string value = fstr(line);
+            rpn.push_back(value);
+            prev_op = value;
         }
         else if((expr[index] >= '0' && expr[index] <= '9') || expr[index] == '.') {
             int begin = index;
@@ -437,30 +448,36 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
             }
             std::string value = expr.substr(begin, index - begin);
             rpn.push_back(value);
+            prev_op = value;
             index--;
         }
         else if(match(expr, parser::null_val, index)) {
             rpn.push_back(parser::null_val);
+            prev_op = parser::null_val;
             index++;
             continue;
         }
         else if(match(expr, ops::integer, index)) {
             rpn.push_back(ops::integer);
+            prev_op = ops::integer;
             index++;
             continue;
         }
         else if(match(expr, ops::floating, index)) {
             rpn.push_back(ops::floating);
+            prev_op = ops::floating;
             index++;
             continue;
         }
         else if(match(expr, ops::string, index)) {
             rpn.push_back(ops::string);
+            prev_op = ops::string;
             index++;
             continue;
         }
         else if(match(expr, ops::left, index)) {
             operators.push(ops::left);
+            prev_op = ops::left;
         }
         else if(match(expr, ops::right, index)) {
             while(!operators.empty() && operators.top() != ops::left) {
@@ -503,6 +520,18 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
             SET_CURRENT_OP(ops::t_if);
             SET_CURRENT_OP(ops::t_else);
             SET_CURRENT_OP(ops::as);
+            //std::cout << "Prev: " << prev_op << " Current: " << current_op << "\n";
+            if(prev_op == "0n" && current_op == "-") {
+                index++;
+                prev_op = current_op;
+                operators.pop();
+                continue;
+            }
+            if(((prev_op == "" || prev_op == ops::left) && current_op == "-") || (current_op == "-" && order(prev_op) != 0)) {
+                current_op = "0n";
+            }
+
+            prev_op = current_op;
 
             while(!operators.empty() && operators.top() != ops::left && order(operators.top()) >= order(current_op)) {
                 rpn.push_back(operators.top());
@@ -513,7 +542,6 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
 
         index++;
     }
-
 
     while(!operators.empty()) {
         if(shortcircuit) {
@@ -686,7 +714,7 @@ std::string eval(std::deque<std::string> rpn) {
         else if(order(token) == 14) {
             y = std::stod(numbers.top());
             numbers.pop();
-            if(token == "n") {
+            if(token == "0n") {
                 y = -y;
             }
             else if(token == "!") {
@@ -859,5 +887,6 @@ std::string eval(std::string expr) {
         return expr;
     }
     std::deque<std::string> rpn = make_rpn(expr);
+    //disp_rpn(rpn);
     return eval(rpn);
 }
