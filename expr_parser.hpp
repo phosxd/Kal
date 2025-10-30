@@ -417,13 +417,6 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
             //index++;
             continue;
         }
-        else if(/*expr[index] == '$'*/ parser::is_var(expr[index]) && expr[index + 1] != '&') {
-            std::string var = parser::parse_variable(expr, index);
-            std::string val = expand_var(var);
-            rpn.push_back(val);
-            prev_op = val;
-            index--;
-        }
         else if(expr[index] == '[') {
             std::string list_value = parser::extract_list(expr, '[', index);
             rpn.push_back(list_value);
@@ -474,6 +467,13 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
             prev_op = ops::string;
             index++;
             continue;
+        }
+        else if(/*expr[index] == '$'*/ (parser::is_var(expr[index]) && expr[index + 1] != '&')) {
+            std::string var = parser::parse_variable(expr, index);
+            std::string val = expand_var(var);
+            rpn.push_back(val);
+            prev_op = val;
+            index--;
         }
         else if(match(expr, ops::left, index)) {
             operators.push(ops::left);
