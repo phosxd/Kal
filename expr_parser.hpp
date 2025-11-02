@@ -468,7 +468,7 @@ std::deque<std::string> make_rpn(std::string& expr, bool shortcircuit = true) {
             index++;
             continue;
         }
-        else if(/*expr[index] == '$'*/ (parser::is_var(expr[index]) && expr[index + 1] != '&')) {
+        else if(/*expr[index] == '$'*/ (parser::is_var(expr[index]) && expr[index + 1] != '&') && (expr[index] != 'a' || expr[index + 1] != 's')) {
             std::string var = parser::parse_variable(expr, index);
             std::string val = expand_var(var);
             rpn.push_back(val);
@@ -627,7 +627,7 @@ std::string eval(std::deque<std::string> rpn) {
             delete result;
             //std::cout << function_call[0].head << " " << function_call[0].values[0] << " [Done]\n";
         }
-        else if(/*token[0] == '$'*/ parser::is_var(token[0]) && token[1] != '&') {
+        else if(/*token[0] == '$'*/ (parser::is_var(token[0]) && token[1] != '&') && (token != ops::as && token != ops::integer && token != ops::floating)) {
             // avoid getting the print from list and dict types
             Value* temp = VarTable::get(token, {}, true, true, true);
             /// does not eval references in case of walrus operator.
