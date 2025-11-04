@@ -121,7 +121,6 @@ void test_var() {
     found_string = VarTable::print("my_data");
     check(found_string, actual_string);
 
-
     VarTable::set("bio", "#(jobs -> 9, company -> \"Kal\", positions -> [\"engineering\", \"testing\"])");
     actual_value = 9;
     // add error when wrong key (non-string) is passed.

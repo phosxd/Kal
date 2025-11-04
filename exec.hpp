@@ -15,7 +15,7 @@
 
 namespace parser {
     void std_out(std::string out_text) {
-        if(/*out_text[0] == '$'*/ parser::is_var(out_text[0])) {
+        if(/*out_text[0] == '$'*/ parser::is_var(out_text)) {
             std::cout << lib::resolve_string(VarTable::print(out_text));
             return;
         }
@@ -65,7 +65,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             Value* existing_value = VarTable::get(result, {}, true, true);
             bool value_exists = (existing_value != nullptr);
 
-            return_value = (/*result[0] == '$'*/ parser::is_var(result[0]) && value_exists) ? copy(existing_value) : make_value(result);
+            return_value = (/*result[0] == '$'*/ parser::is_var(result) && value_exists) ? copy(existing_value) : make_value(result);
             // TODO: send this result value to the outer scope and assign it to the target variable.
             //return new Value();
             int original_depth = call_stack.top().second;
