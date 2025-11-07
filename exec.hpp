@@ -58,8 +58,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
         //std::cout << "-----\nHead: " << ins << "\n";
 
         if(cmd.head == "<-") {
+            while(!defer_stack.empty() && defer_stack.top().second >= depth) {
+                eval(defer_stack.top().first);
+                defer_stack.pop();
+            }
+
             std::string result = eval(cmd.target);
-            //std::cout << "Target: " << result << "\n";
             Value* return_value = nullptr;
 
             Value* existing_value = VarTable::get(result, {}, true, true);
@@ -127,12 +131,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     delete return_value;
                 }
             }
-            //delete return_value;
-            // fact value attains accurate value when depth-- here and not after gc().
-            while(!defer_stack.empty() && defer_stack.top().second >= depth) {
-                eval(defer_stack.top().first);
-                defer_stack.pop();
-            }
+
             VarTable::gc(depth);
             depth--;
             call_stack.pop();

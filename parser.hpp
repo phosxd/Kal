@@ -494,7 +494,7 @@ namespace parser {
                 required_token = extract_dict(text, index);
                 index++;
             }
-            else {
+            else if(is_var(text, index)){
                 required_token = parse_variable(text, index);
             }
             if(required_token != "") {
@@ -541,7 +541,7 @@ namespace parser {
                 tokens.emplace_back(required_token);
             }
             else {
-                std::cout << text << " Op: " << assign_op << "\n";
+                std::cout << text << "\n";
                 std::cout << index << " " << text[index] << std::endl;
                 END;
             }

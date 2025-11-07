@@ -155,6 +155,8 @@ void test_fn() {
     actual_value = new Number("150");
     CHECK;*/
 
+    // TODO: Add tests for pass by reference.
+
     progress();
     title("Recursive Functions");
     lines = {
@@ -187,6 +189,41 @@ void test_fn() {
     CHECK;
     found_value = fn_call({ ":fib 6" });
     actual_value = new Number("8");
+    CHECK;
+
+    progress();
+    title("defer");
+
+    lines = {
+        "fn mul -> n {",
+            "n = n * 10",
+        "}",
+
+        "fn incr -> n {",
+            "n = n + 10",
+        "}",
+
+        "fn test_defer_a {",
+            "var n = 5",
+            "defer $(:mul &n)",
+            "defer $(:incr &n)",
+            "<- n",
+        "}",
+
+        "fn test_defer_b {",
+            "var n = 5",
+            "defer $(:mul &n) $(:incr &n)",
+            "<- n",
+        "}"
+    };
+    make_fn(lines);
+
+    found_value = fn_call({ ":test_defer_a" });
+    actual_value = new Number("150");
+    CHECK;
+
+    found_value = fn_call({ ":test_defer_b" });
+    actual_value = new Number("60");
     CHECK;
 
     Functions::gc();
