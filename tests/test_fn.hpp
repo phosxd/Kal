@@ -226,6 +226,30 @@ void test_fn() {
     actual_value = new Number("60");
     CHECK;
 
+    VarTable::set("test_value", "10");
+    lines = {
+        "fn test_defer_c {",
+            "defer $(:incr &test_value)",
+        "}"
+    };
+    make_fn(lines);
+    fn_call({ ":test_defer_c" });
+    found_value = VarTable::get("test_value", {}, true, true, true);
+    actual_value = new Number("20");
+    CHECK;
+
+    lines = {
+        "fn test_defer_d {",
+            "defer $(:mul &n)",
+            "var n = 5",
+            "<- n",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":test_defer_d" });
+    actual_value = new Number("50");
+    CHECK;
+
     Functions::gc();
 
     progress();

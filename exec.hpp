@@ -33,6 +33,13 @@ namespace parser {
 
 std::stack<std::pair<std::string, int>> defer_stack;
 
+void exec_defer(std::stack<std::pair<std::string, int>>& defer_stack, int& depth) {
+    while(!defer_stack.empty() && defer_stack.top().second >= depth) {
+        eval(defer_stack.top().first);
+        defer_stack.pop();
+    }
+}
+
 Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_defer = false) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     bool warn = true;
@@ -58,11 +65,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
         //std::cout << "-----\nHead: " << ins << "\n";
 
         if(cmd.head == "<-") {
-            while(!defer_stack.empty() && defer_stack.top().second >= depth) {
-                eval(defer_stack.top().first);
-                defer_stack.pop();
-            }
-
+            exec_defer(defer_stack, depth);
             std::string result = eval(cmd.target);
             Value* return_value = nullptr;
 
@@ -436,10 +439,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
     }
 
     if(fn_defer) {
-        while(!defer_stack.empty() && defer_stack.top().second >= depth) {
-            eval(defer_stack.top().first);
-            defer_stack.pop();
-        }
+        exec_defer(defer_stack, depth);
     }
 
 
