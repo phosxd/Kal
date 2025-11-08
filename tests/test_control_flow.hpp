@@ -400,5 +400,24 @@ void test_control_flow() {
     check(found_value, actual_value);
 
     VarTable::gc();
+    lines = {
+        "var value = 0",
+        "if (test_value := 100) > 50 {",
+            "value = test_value",
+        "}"
+    };
+    RUN_CASE("100");
+
+    lines = {
+        "value = 0",
+        "var test = 0",
+        "if 1 == 1 {",
+            "var x = (test := 10) * 20",
+            "value = test",
+        "}"
+    };
+    RUN_CASE("10");
+
+    VarTable::gc();
     progress();
 }

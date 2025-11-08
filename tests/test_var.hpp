@@ -364,6 +364,47 @@ void test_var() {
     found_string = VarTable::print("p");
     check(found_string, actual_string);
 
+    // Tests for the walrus (:=) operator.
+    VarTable::set("new_data", "new_info := 100");
+    actual_string = "100";
+    found_string = VarTable::print("new_info");
+    check(found_string, actual_string);
+    found_string = VarTable::print("new_data");
+    check(found_string, actual_string);
+
+    VarTable::set("new_data", "new_info_a := (45 + 55)");
+    actual_string = "100";
+    found_string = VarTable::print("new_info_a");
+    check(found_string, actual_string);
+    found_string = VarTable::print("new_data");
+    check(found_string, actual_string);
+
+    VarTable::set("new_data", "(new_info_b := 100) + 100");
+    actual_string = "100";
+    found_string = VarTable::print("new_info_b");
+    check(found_string, actual_string);
+    actual_string = "200";
+    found_string = VarTable::print("new_data");
+    check(found_string, actual_string);
+
+    VarTable::set("xyz", "50");
+    VarTable::set("abc", "pqr := &xyz");
+    actual_string = "50";
+    found_string = VarTable::print("pqr");
+    check(found_string, actual_string);
+    found_string = VarTable::print("abc");
+    check(found_string, actual_string);
+
+    VarTable::set("abc", "10");
+    actual_string = "10";
+    found_string = VarTable::print("pqr");
+    check(found_string, actual_string);
+
+    VarTable::set("pqr", "20");
+    actual_string = "20";
+    found_string = VarTable::print("abc");
+    check(found_string, actual_string);
+
     progress();
 
     // Test for performing Garbage Collection (GC).
