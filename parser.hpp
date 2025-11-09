@@ -462,6 +462,7 @@ namespace parser {
             return required_token;
         }
         else {
+            std::cout << "Text: " << text << "\nIndex: " << index << "\n";
             std::cout << "unknown token: [" << text[index] << "]" << std::endl;
             exit(1);
         }

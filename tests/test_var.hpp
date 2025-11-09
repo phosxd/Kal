@@ -4,7 +4,11 @@
 
 void test_var() {
     double actual_value, found_value;
+    Value* actual_ptr;
+    Value* found_ptr;
     std::string actual_string, found_string;
+    std::vector<Token> tokens;
+    std::vector<std::string> lines;
 
     component("Variable Table");
 
@@ -410,6 +414,65 @@ void test_var() {
     // Test for performing Garbage Collection (GC).
     title("VarTable::gc()");
     VarTable::gc();
+    progress();
+
+    // Tests for unnames scopes.
+    title("Unnamed Scopes");
+    lines = {
+        "var value = 10",
+        "{",
+            "var info = 20",
+        "}"
+    };
+    tokens = lexer::tokenize(lines);
+    line_exec(tokens, false, false);
+    found_string = VarTable::print("value");
+    actual_string = "10";
+    check(found_string, actual_string);
+    found_ptr = VarTable::get("info", {}, true, true, true);
+    actual_ptr = nullptr;
+    check(found_ptr, actual_ptr);
+
+    lines = {
+        "value = 0",
+        "{",
+            "var data = 20",
+            "value = data",
+        "}"
+    };
+    tokens = lexer::tokenize(lines);
+    line_exec(tokens, false, false);
+    found_string = VarTable::print("value");
+    actual_string = "20",
+    check(found_string, actual_string);
+    found_ptr = VarTable::get("data", {}, true, true, true);
+    actual_ptr = nullptr;
+    check(found_ptr, actual_ptr);
+
+    lines = {
+        "value = 0",
+        "var temp = 100",
+        "{",
+            "var temp = 10",
+            "value = value + temp",
+            "{",
+                "var temp = 20",
+                "value = value + temp",
+                "{",
+                    "var temp = 30",
+                    "value = value + temp",
+                "}",
+            "}",
+        "}"
+    };
+    tokens = lexer::tokenize(lines);
+    line_exec(tokens, false, false);
+    found_string = VarTable::print("temp");
+    actual_string = "100";
+    check(found_string, actual_string);
+    found_string = VarTable::print("value");
+    actual_string = "60";
+    check(found_string, actual_string);
 
     progress();
 }

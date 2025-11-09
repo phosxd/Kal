@@ -84,6 +84,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
             return return_value;
         }
 
+        if(cmd.head == "{") {
+            depth++;
+        }
+
         if(cmd.head[0] == ':') {
             std::string fn_name = cmd.head.substr(1);
             Fn* fn = Functions::fn[fn_name];

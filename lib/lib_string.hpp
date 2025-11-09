@@ -176,6 +176,16 @@ namespace lib {
                 continue;
             }
 
+            if(!inside_string && text[index] == '{') {
+                lines.emplace_back("{");
+                index++;
+                while(text[index] == ' ' || text[index] == '\t' || text[index] == '\n' || text[index] == '\r') {
+                    index++;
+                }
+                begin = index;
+                continue;
+            }
+
             if(!inside_string && text[index] == '}') {
                 int end = index;
                 required_line = text.substr(index, end - index + 1);
