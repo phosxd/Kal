@@ -7,6 +7,7 @@
 #include <sstream>
 #include <algorithm>
 
+#include "globals.hpp"
 #include "lexer.hpp"
 #include "types.hpp"
 #include "expr_parser.hpp"
@@ -31,11 +32,6 @@ std::vector<std::string> parse_map(std::string text, int& index) {
     return vals;
 }
 
-enum Type {
-    VAR,
-    INERT
-};
-
 Value* copy(Value*);
 std::unordered_map<std::string, Value*> memory;
 namespace VarTable {
@@ -59,7 +55,7 @@ Value* make_value(std::string value) {
     else if(value == "null") {
         val = new Null();
     }
-    else if(value[0] == '$') {
+    else if(/*value[0] == '$'*/ parser::is_var(value)) {
         val = VarTable::get(value, {});
     }
     return val;
@@ -245,19 +241,22 @@ std::string Dict::print() {
             disp << ((Number*)value)->print();
         }*/
         if(TO_NUM(value)) {
-            disp << ((Number*)value)->print();
+            disp << TO_NUM(value)->print();
         }
         else if(TO_STR(value)) {
-            disp << ((String*)value)->print();
+            disp << TO_STR(value)->print();
         }
         else if(TO_LIST(value)) {
-            disp << ((List*)value)->print();
+            disp << TO_LIST(value)->print();
         }
         else if(TO_DICT(value)) {
-            disp << ((Dict*)value)->print();
+            disp << TO_DICT(value)->print();
         }
         else if(TO_NULL(value)) {
-            disp << ((Null*)value)->print();
+            disp << TO_NULL(value)->print();
+        }
+        else if(TO_REF(value)) {
+            disp << TO_REF(value)->print();
         }
         else {
             std::cout << "invalid pointer\n";
@@ -394,7 +393,7 @@ namespace ScopeTable {
 }
 
 namespace VarTable {
-    void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0);
+    //void set(std::string, std::string, Value* data_ptr = nullptr, Type type = VAR, bool disallow_copy = false, int depth = 0, bool allow_shadowing = false);
 
     void gc_value(std::string name, Value* val) {
         if(val != nullptr) {
@@ -403,6 +402,7 @@ namespace VarTable {
                 if(top.second >= depth) {
                     delete top.first;
                     val->shadow->pop();
+                    //std::cout << "Shadow Stack Size: " << val->shadow->size();
                     if(val->shadow->size() == 0) {
                         val->gc_shadow();
                     }
@@ -433,16 +433,19 @@ namespace VarTable {
 
     Value* get(std::string name, std::vector<std::string> symbols, bool update, bool for_print, bool get_original) {
         // eval the inert var when it's used.
-        if(name != "" && InertTable::vars[name.substr(1)] != "" && !InertTable::is_hit[name.substr(1)]) {
-            std::string Name = name.substr(1);
+        if(name[0] >= '0' && name[0] <= '9') {
+            return nullptr;
+        }
+        if(name != "" && InertTable::vars[name/*.substr(1)*/] != "" && !InertTable::is_hit[name/*.substr(1)*/]) {
+            std::string Name = name/*.substr(1)*/;
             //std::cout << "adding: " << Name << " value: " << InertTable::vars[Name] << std::endl;
             set(Name, InertTable::vars[Name]);
             InertTable::is_hit[Name] = true;
         }
         //
 
-        if(name != "" && memory[name.substr(1)] != nullptr) {
-            Value* fetched_var = memory[name.substr(1)];
+        if(name != "" && memory[name/*.substr(1)*/] != nullptr) {
+            Value* fetched_var = memory[name/*.substr(1)*/];
             Value* ret_var = nullptr;
             if(fetched_var != nullptr && fetched_var->shadow != nullptr && fetched_var->shadow->size() != 0) {
                 ret_var = fetched_var->shadow->top().first;
@@ -463,24 +466,26 @@ namespace VarTable {
         }
 
         std::string var_name = symbols[0];
-        if(var_name[0] != '$') {
+        /*if(var_name[0] != '$') {
             std::cout << "expected $\n";
             exit(0);
-        }
+        }*/
         bool is_ref = false;
-        uint8_t pos = 1;
-        if(var_name[1] == '&') {
+        //uint8_t pos = /*1*/ 0;
+        if(var_name[/*1*/ 0] == '&') {
             is_ref = true;
-            pos++;
+            var_name = var_name.substr(1);
+            //pos++;
         }
-        var_name = var_name.substr(pos);
+        //var_name = var_name.substr(pos);
         Value* var = memory[var_name];
         int size = symbols.size();
         int bound = size;
 
         //bool at_parent = false;
         if(var == nullptr) {
-            errors::undefined_var(call_stack, name, name);
+            //errors::undefined_var(call_stack, name, name);
+            return var;
         }
         Value* p = nullptr;
         if(size > 1) {
@@ -565,7 +570,7 @@ namespace VarTable {
         //
         uint64_t len = items.size();
         if(structure != "" && data_ptr == nullptr) {
-            if(structure[0] == '$') {
+            if(/*structure[0] == '$'*/ parser::is_var(structure)) {
                 packed_items = get(structure, {}, true, true);
             }
             else {
@@ -629,8 +634,13 @@ namespace VarTable {
         }
     }
 
-    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth) {
+    void set(std::string var, std::string data, Value* data_ptr, Type type, bool disallow_copy, int depth, bool allow_shadowing) {
         //std::cout << "raw: " << data << std::endl;
+        //if(allow_shadowing)
+        //    std::cout << "Setting " << var << " to " << data << "\n";
+        //else
+        //    std::cout << "Re-assigning " << var << " to " << data << "\n";*/
+
         bool is_shadowed = false;
         if(var[0] == '[' || (var[0] == '#' && var[1] == '(')) {
             unpack(var, data);
@@ -653,11 +663,12 @@ namespace VarTable {
 
 
         //std::cout << "eval: " << data << std::endl;
-        if(var[0] == '$') {
+        Value* ptr = VarTable::get(var/*.substr(1)*/, {}, true, true);
+        if(/*var[0] == '$'*/ ptr != nullptr && !allow_shadowing && parser::is_var(var)) {
             // TODO: the same for Strings. (DONE)
             // TODO: the impl is done for literals, add resolve code for vars and refs. (DONE)
-            Value* ptr = VarTable::get(var, {}, true, true);
-            if(data != "" && data[0] == '$') {
+            //std::cout << "Mem Value = " << ptr << "\n";
+            if(data != "" && /*data[0] == '$'*/ parser::is_var(data)) {
                 Value* d_ptr = VarTable::get(data, {}, true, true);
                 if(TO_REF(d_ptr)) {
                     d_ptr = TO_REF(d_ptr)->ref;
@@ -683,7 +694,7 @@ namespace VarTable {
                 return;
             }
         }
-        if(var[1] == '&') {
+        if(var[0] == '&') {
             std::cout << "Cannot use `&` while setting a variable.\n";
             exit(0);
         }
@@ -709,7 +720,7 @@ namespace VarTable {
         else if(data == "null") {
             value = new Null();
         }*/
-        else if(data[0] == '$') {
+        else if(/*data[0] == '$'*/ parser::is_var(data)) {
             value = get(data, {});
             if(TO_REF(value)) {
                 RefTable::add(TO_REF(value)->ref);
@@ -723,7 +734,7 @@ namespace VarTable {
             //std::cout << "Shadowing Value 2: " << value << "\n";
         }
 
-        if(memory[var] != nullptr && var[0] != '$') {
+        if(allow_shadowing && memory[var] != nullptr /*&& var[0] != '$'*/) {
             if(memory[var]->shadow == nullptr) {
                 memory[var]->init_shadow();
             }
@@ -732,10 +743,10 @@ namespace VarTable {
             //return;
         }
 
-        if(var[0] == '$') {
+        if(/*var[0] == '$'*/ ptr != nullptr && !allow_shadowing && parser::is_var(var)) {
             //
             //
-            std::string v_name = var.substr(1);
+            std::string v_name = var/*.substr(1)*/;
             if(memory[v_name] != nullptr) {
                 if(TO_REF(memory[v_name])) {
                     std::unordered_map<std::string, Value*>::iterator itr;
@@ -915,14 +926,14 @@ namespace VarTable {
         }
     }
 
-    std::vector<std::string> init_by_string(std::string& init_string, int depth) {
+    std::vector<std::string> init_by_string(std::string& init_string, int depth, bool allow_shadowing = false) {
         int assign_idx = 0;
         std::vector<std::string> var_names;
         std::vector<std::string> assignments = parser::parse_init(init_string, assign_idx);
         int total_assigns = assignments.size();
         var_names.reserve(total_assigns / 2);
         for(int each_assign = 0; each_assign < total_assigns; each_assign += 2) {
-            set(assignments[each_assign], assignments[each_assign + 1], nullptr, VAR, false, depth);
+            set(assignments[each_assign], assignments[each_assign + 1], nullptr, VAR, false, depth, allow_shadowing);
             var_names.emplace_back(assignments[each_assign]);
         }
         return var_names;
@@ -1098,7 +1109,7 @@ bool compare(std::string first, std::string second) {
     Value* b = nullptr;
     bool result = true;
     bool a_temp = false, b_temp = false;
-    if(first[0] == '$') {
+    if(/*first[0] == '$'*/ parser::is_var(first)) {
         a = VarTable::get(first, {}, true, true);
     }
     else if(first[0] == '[') {
@@ -1110,7 +1121,7 @@ bool compare(std::string first, std::string second) {
         a_temp = true;
     }
 
-    if(second[0] == '$') {
+    if(/*second[0] == '$'*/ parser::is_var(second)) {
         b = VarTable::get(second, {}, true, true);
     }
     else if(second[0] == '[') {
@@ -1137,7 +1148,7 @@ bool compare(std::string first, std::string second) {
 bool compare(Value* first, std::string second) {
     Value* b = nullptr;
     bool temp = false;
-    if(second[0] == '$') {
+    if(/*second[0] == '$'*/ parser::is_var(second)) {
         b = VarTable::get(second, {}, true, true);
     }
     if(second[0] == '[') {

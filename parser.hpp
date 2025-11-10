@@ -46,9 +46,9 @@ namespace parser {
         return str_token[0] == '"' && str_token[str_token.size() - 1] == '"';
     }
 
-    bool is_var(const std::string& var_token) {
-        return var_token[0] == '$';
-    }
+    /*bool is_var(char& var_token) {
+        return (var_token >= 'a' && var_token <= 'z') || (var_token >= 'A' && var_token <= 'Z') || var_token == '&' || var_token == '_';
+    }*/
 
     bool is_number(char number) {
         return number >= '0' && number <= '9';
@@ -65,6 +65,17 @@ namespace parser {
             index += pattern_len;
         }
         return matched;
+    }
+
+    bool is_var(std::string& token, int index = 0) {
+        if(index == 0) {
+            bool is_special = (parser::match(index, token, "as", false) || parser::match(index, token, "int", false));
+            if(is_special) {
+                return false;
+            }
+        }
+        char& first = token[index];
+        return /*!is_special &&*/ (token[index + 1] != '&') && ((first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || (first == '&' || first == '_'));
     }
 
     std::string parse_number(const std::string& text, int& index) {
@@ -111,21 +122,21 @@ namespace parser {
         return expr;
     }
 
-    std::string parse_variable(const std::string& text, int& index, bool with_sub = true) {
+    std::string parse_variable(/*const*/ std::string& text, int& index, bool with_sub = true) {
         int begin = index;
         int text_pos = index;
         int text_size = text.size();
-        if(text[index] == '$') {
+        /*if(text[index] == '$') {
             index++;
-            if(text[index] == '&') {
-                index++;
-            }
+        }*/
+        if(text[index] == '&') {
+            index++;
         }
         if(text[index] >= '0' && text[index] <= '9') {
             END;
         }
         while(text_pos < text_size) {
-            if(is_alpha(text[index]) || text[index] == '_' || (text[index] >= '0' && text[index] <= '9')) {
+            if(is_var(text, index) || text[index] == '_' || (text[index] >= '0' && text[index] <= '9')) {
                 index++;
             }
             else {
@@ -218,7 +229,7 @@ namespace parser {
     void skip_variable(std::string var, int& index) {
         int size = var.size();
         while(index < size) {
-            if(var[index] == '$' || var[index] == '&' || is_alpha(var[index]) || var[index] == '_' || (var[index] >= 0 && var[index] <= 9)) {
+            if(/*var[index] ==  || */var[index] == '&' || is_alpha(var[index]) || var[index] == '_' || (var[index] >= 0 && var[index] <= 9)) {
                 index++;
             }
             else {
@@ -308,7 +319,7 @@ namespace parser {
             if(text[index] == '[') {
                 skip_list(text, text[index], index);
             }
-            if(text[index] == '$') {
+            if(/*text[index] == '$'*/ is_var(text, index)) {
                 skip_variable(text, index);
             }
             while(text[index] != ',') {
@@ -427,7 +438,7 @@ namespace parser {
             required_token = parse_fexpr(text, index);
             index--;
         }
-        else if(text[index] == '$') {
+        else if(/*text[index] == '$'*/ is_var(text, index)) {
             required_token = parse_variable(text, index);
             index--;
         }
@@ -451,6 +462,7 @@ namespace parser {
             return required_token;
         }
         else {
+            std::cout << "Text: " << text << "\nIndex: " << index << "\n";
             std::cout << "unknown token: [" << text[index] << "]" << std::endl;
             exit(1);
         }
@@ -483,7 +495,7 @@ namespace parser {
                 required_token = extract_dict(text, index);
                 index++;
             }
-            else {
+            else if(is_var(text, index)){
                 required_token = parse_variable(text, index);
             }
             if(required_token != "") {
@@ -530,6 +542,7 @@ namespace parser {
                 tokens.emplace_back(required_token);
             }
             else {
+                std::cout << text << "\n";
                 std::cout << index << " " << text[index] << std::endl;
                 END;
             }
@@ -662,7 +675,7 @@ namespace parser {
                 index++;
                 continue;
             }
-            if(text[index] == '$' && !config->head) {
+            if(config->init_list && !config->head && is_var(text, index)) {
                 token.init = parse_init(text, index);
                 continue;
             }

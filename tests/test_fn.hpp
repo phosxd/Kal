@@ -31,13 +31,13 @@ void test_shadowing() {
     lines = {
         "var sum = 0",
         "var value = 10",
-        "$sum = $sum + $value",
+        "sum = sum + value",
         "if 1 == 1 {",
             "var value = 20",
-            "$sum = $sum + $value",
+            "sum = sum + value",
             "if 2 == 2 {",
                 "var value = 30",
-                "$sum = $sum + $value",
+                "sum = sum + value",
             "}",
         "}"
     };
@@ -46,11 +46,11 @@ void test_shadowing() {
     line_exec(tokens);
 
     actual_value = "60";
-    found_value = VarTable::print("$sum");
+    found_value = VarTable::print("sum");
     check(actual_value, found_value);
 
     actual_value = "10";
-    found_value = VarTable::print("$value");
+    found_value = VarTable::print("value");
     check(actual_value, found_value);
 
     VarTable::gc();
@@ -89,7 +89,7 @@ void test_fn() {
     title("Parameters");
     lines = {
         "fn greet -> name {",
-        "<- \"Hello \" + $name + \"!\"",
+        "<- \"Hello \" + name + \"!\"",
         "}"
     };
     make_fn(lines);
@@ -99,7 +99,7 @@ void test_fn() {
 
     lines = {
         "fn add -> x, y {",
-        "<- $x + $y",
+        "<- x + y",
         "}"
     };
     make_fn(lines);
@@ -109,7 +109,7 @@ void test_fn() {
 
     lines = {
         "fn times -> n {",
-        "<- $n * 10",
+        "<- n * 10",
         "}"
     };
     make_fn(lines);
@@ -119,7 +119,7 @@ void test_fn() {
 
     lines = {
         "fn def_args -> a: 10, b: 20 {",
-        "<- $a * $b",
+        "<- a * b",
         "}"
     };
     make_fn(lines);
@@ -136,8 +136,8 @@ void test_fn() {
     lines = {
         "fn compose {",
         ":times 20 -> x",
-        ":add $x 100 -> y",
-        "<- $y",
+        ":add x 100 -> y",
+        "<- y",
         "}"
     };
     make_fn(lines);
@@ -155,14 +155,16 @@ void test_fn() {
     actual_value = new Number("150");
     CHECK;*/
 
+    // TODO: Add tests for pass by reference.
+
     progress();
     title("Recursive Functions");
     lines = {
         "fn fact -> n {",
-        "if $n == 0 || $n == 1 {",
+        "if n == 0 || n == 1 {",
         "<- 1",
         "}",
-        "<- $n * $(:fact ($n - 1))",
+        "<- n * $(:fact (n - 1))",
         "}"
     };
     make_fn(lines);
@@ -172,10 +174,10 @@ void test_fn() {
 
     lines = {
         "fn fib -> x {",
-        "if $x == 0 || $x == 1 {",
-        "<- $x",
+        "if x == 0 || x == 1 {",
+        "<- x",
         "}",
-        "<- $(:fib ($x - 1)) + $(:fib ($x - 2))",
+        "<- $(:fib (x - 1)) + $(:fib (x - 2))",
         "}"
     };
     make_fn(lines);
@@ -187,6 +189,65 @@ void test_fn() {
     CHECK;
     found_value = fn_call({ ":fib 6" });
     actual_value = new Number("8");
+    CHECK;
+
+    progress();
+    title("defer");
+
+    lines = {
+        "fn mul -> n {",
+            "n = n * 10",
+        "}",
+
+        "fn incr -> n {",
+            "n = n + 10",
+        "}",
+
+        "fn test_defer_a {",
+            "var n = 5",
+            "defer $(:mul &n)",
+            "defer $(:incr &n)",
+            "<- n",
+        "}",
+
+        "fn test_defer_b {",
+            "var n = 5",
+            "defer $(:mul &n) $(:incr &n)",
+            "<- n",
+        "}"
+    };
+    make_fn(lines);
+
+    found_value = fn_call({ ":test_defer_a" });
+    actual_value = new Number("150");
+    CHECK;
+
+    found_value = fn_call({ ":test_defer_b" });
+    actual_value = new Number("60");
+    CHECK;
+
+    VarTable::set("test_value", "10");
+    lines = {
+        "fn test_defer_c {",
+            "defer $(:incr &test_value)",
+        "}"
+    };
+    make_fn(lines);
+    fn_call({ ":test_defer_c" });
+    found_value = VarTable::get("test_value", {}, true, true, true);
+    actual_value = new Number("20");
+    CHECK;
+
+    lines = {
+        "fn test_defer_d {",
+            "defer $(:mul &n)",
+            "var n = 5",
+            "<- n",
+        "}"
+    };
+    make_fn(lines);
+    found_value = fn_call({ ":test_defer_d" });
+    actual_value = new Number("50");
     CHECK;
 
     Functions::gc();

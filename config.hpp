@@ -95,6 +95,11 @@ Config group_6 {
     .single_arg = true,
 };
 
+Config group_7 {
+    .id = 7,
+    .head = true,
+};
+
 namespace p_config {
     Config* get_config(std::string& line, std::string& cmd) {
         // refactor this into switch-case.
@@ -116,9 +121,15 @@ namespace p_config {
         else if(cmd == "<-") {
             return &group_6;
         }
-        else if(cmd[0] == '$') {
+        else if(cmd == "{") {
+            return &group_7;
+        }
+        else {
             return &group_0;
         }
+        /*else if(cmd[0] == '$') {
+            return &group_0;
+        }*/
 
         errors::unidentified_keyword(call_stack, line, cmd);
         return &group_0;

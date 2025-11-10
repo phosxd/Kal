@@ -15,7 +15,7 @@
 
 namespace parser {
     void std_out(std::string out_text) {
-        if(out_text[0] == '$') {
+        if(/*out_text[0] == '$'*/ parser::is_var(out_text)) {
             std::cout << lib::resolve_string(VarTable::print(out_text));
             return;
         }
@@ -33,7 +33,14 @@ namespace parser {
 
 std::stack<std::pair<std::string, int>> defer_stack;
 
-Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
+void exec_defer(std::stack<std::pair<std::string, int>>& defer_stack, int& depth) {
+    while(!defer_stack.empty() && defer_stack.top().second >= depth) {
+        eval(defer_stack.top().first);
+        defer_stack.pop();
+    }
+}
+
+Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_defer = false) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     bool warn = true;
     int total_tokens = tokens.size();
@@ -55,20 +62,17 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             continue;
         }
 
+        //std::cout << "-----\nHead: " << ins << "\n";
+
         if(cmd.head == "<-") {
-            //std::cout << "\tLine: " << (line + 1) << "\n";
-            //std::cout << "Expression: [" << cmd.target << "]\n";
-            //std::cout << "Ret Expr: " << cmd.target << "\n";
+            exec_defer(defer_stack, depth);
             std::string result = eval(cmd.target);
             Value* return_value = nullptr;
-            //std::cout << "Res: " << result << "\n";
-            //std::cout << "Ret Value: " << result << "\n";
-            //std::cout << "Result: " << result << "\n";
-            /*if(result[0] == '$') {
-                //result = VarTable::print(result);
-                //return copy(VarTable::get(result, {}, true, true));
-            }*/
-            return_value = (result[0] == '$') ? copy(VarTable::get(result, {}, true, true)) : make_value(result);
+
+            Value* existing_value = VarTable::get(result, {}, true, true);
+            bool value_exists = (existing_value != nullptr);
+
+            return_value = (/*result[0] == '$'*/ parser::is_var(result) && value_exists) ? copy(existing_value) : make_value(result);
             // TODO: send this result value to the outer scope and assign it to the target variable.
             //return new Value();
             int original_depth = call_stack.top().second;
@@ -76,10 +80,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 VarTable::gc(depth);
                 depth--;
             }
-            //VarTable::gc(depth);
-            //depth--;
-            //return make_value(result);
+
             return return_value;
+        }
+
+        if(cmd.head == "{") {
+            depth++;
         }
 
         if(cmd.head[0] == ':') {
@@ -98,8 +104,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                     //std::cout << "R_Val evaled: " << r_val << "\n";
                 }*/
                 // std::cout << fn->init[arg * 2] << ": " << r_val << " (" << depth <<")" << "\n";
-                //std::cout << "Var: " << fn->init[arg * 2] << " Val: " << eval(r_val) << "\n";
-                VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth);
+                VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth, true);
             }
 
             int all = (fn->init.size() / 2);
@@ -108,32 +113,49 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                 if(r_val[0] == '(') {
                     r_val = eval(r_val);
                 }
-                VarTable::set(fn->init[rest * 2], r_val, nullptr, VAR, false, depth);
+                VarTable::set(fn->init[rest * 2], r_val, nullptr, VAR, false, depth, true);
                 //std::cout << fn->init[2*rest] << "(" << (2*rest) << ")" << " : " << fn->init[2*rest + 1] << "(" << (2*rest + 1) << ")" << "\n";
             }
 
             call_stack.push(std::pair<std::string, int> { fn_name, depth });
             //std::cout << "Start Depth: " << depth << "\n";
-            Value* return_value = line_exec(fn->body);
+            Value* return_value = line_exec(fn->body, false, true);
             //std::cout << "End Depth: " << depth << "\n";
             if(/*return_value != nullptr &&*/ !auto_return) {
                 if(return_value == nullptr) {
                     return_value = new Null();
                 }
-                VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1);
+                // only set this is target exists.
+                if(cmd.target != "") {
+                    // figure out if i need to allow shadowing or not. [TODO]. [DONE]
+                    // if variable exists, don't allow, if exists, allow. [DONE]
+                    bool allow_shadowing = VarTable::get(cmd.target, {}, true, true) != nullptr;
+                    VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1, allow_shadowing);
+                    //std::cout << "Targeting " << cmd.target << " to " << return_value->print() << "\n";
+                    //if(fn_name == "add") std::cout << "Here\n";
+                }
+                else {
+                    delete return_value;
+                }
             }
-            //delete return_value;
-            // fact value attains accurate value when depth-- here and not after gc().
-            while(!defer_stack.empty() && defer_stack.top().second >= depth) {
-                eval(defer_stack.top().first);
-                defer_stack.pop();
-            }
+
             VarTable::gc(depth);
             depth--;
             call_stack.pop();
             if(auto_return) {
                 return return_value;
             }
+        }
+
+        else if(ins == "" && cmd.init.size() > 0) {
+            int total_reassigns = cmd.init.size();
+            //std::cout << "Here\n";
+            for(int each_reassign = 0; each_reassign < total_reassigns; each_reassign += 2) {
+                //std::cout << "Reassigning " << "[" << cmd.init[each_reassign] << "] to [" << cmd.init[each_reassign + 1] << "]\n";
+                VarTable::set(cmd.init[each_reassign], cmd.init[each_reassign + 1], nullptr, VAR, false, depth);
+            }
+            line++;
+            continue;
         }
 
         if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") {
@@ -235,7 +257,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
                         //    std::cout << init_loop.top() << " " << depth << "\n";
                         if(init_loop.empty() || init_loop.top().first != depth) {
                             //std::cout << "[" << tokens[line].values[0] << "]\n";
-                            std::vector<std::string> var_names = VarTable::init_by_string(tokens[line].values[0], depth - 1);
+                            std::vector<std::string> var_names = VarTable::init_by_string(tokens[line].values[0], depth - 1, true);
                             init_loop.push({ depth, var_names });
                         }
                     }
@@ -394,7 +416,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             int vars = cmd.init.size();
             bool is_static = ins == "static";
             for(int each = 0; each < vars; each += 2) {
-                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth);
+                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth, true);
             }
         }
 
@@ -417,17 +439,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false) {
             }
         }
 
-        /*else if(ins == "stdin" && cmd_size == 1) {
-            std::string var_to_read = lexer::get_var_name_from_token(cmd.values[0]);
-            if(var.get_mem_type(var_to_read) == "const") {
-                errors::change_const_var_error(var_to_read);
-            }
-            //var.read_var(var.expand_var(cmd[1]));
-            var.read_var(cmd.values[0]);
-        }*/
-
         line++;
     }
+
+    if(fn_defer) {
+        exec_defer(defer_stack, depth);
+    }
+
 
     std::cout << style::style["reset"];
 
