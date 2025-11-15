@@ -40,7 +40,7 @@ void exec_defer(std::stack<std::pair<std::string, int>>& defer_stack, int& depth
     }
 }
 
-Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_defer = false) {
+Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_defer = false, bool top_return) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     bool warn = true;
     int total_tokens = tokens.size();
@@ -65,6 +65,11 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
         //std::cout << "-----\nHead: " << ins << "\n";
 
         if(cmd.head == "<-") {
+            bool is_call_stack_empty = call_stack.empty();
+            if(is_call_stack_empty && !top_return) {
+                std::cout << "cannot return at top level\n";
+                exit(1);
+            } 
             exec_defer(defer_stack, depth);
             std::string result = eval(cmd.target);
             Value* return_value = nullptr;
@@ -75,10 +80,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
             return_value = (/*result[0] == '$'*/ parser::is_var(result) && value_exists) ? copy(existing_value) : make_value(result);
             // TODO: send this result value to the outer scope and assign it to the target variable.
             //return new Value();
-            int original_depth = call_stack.top().second;
-            while(depth != original_depth) {
-                VarTable::gc(depth);
-                depth--;
+            if(!is_call_stack_empty) {
+                int original_depth = call_stack.top().second;
+                while(depth != original_depth) {
+                    VarTable::gc(depth);
+                    depth--;
+                }
             }
 
             return return_value;

@@ -16,7 +16,7 @@
 
 std::string eval(std::deque<std::string>);
 bool compare(std::string, std::string);
-Value* line_exec(std::vector<Token>&, bool, bool);
+Value* line_exec(std::vector<Token>&, bool, bool, bool = false);
 
 #define SET_CURRENT_OP(X) else if(match(expr, X, index)) current_op = X
 
