@@ -6,7 +6,7 @@
 #define RUN_CASE(VALUE) actual_string = VALUE; \
     tokens = lexer::tokenize(lines); \
     line_exec(tokens); \
-    found_string = VarTable::print("value"); \
+    found_string = VarTable::print("value", memory); \
     check(found_string, actual_string);
 
 void test_control_flow() {

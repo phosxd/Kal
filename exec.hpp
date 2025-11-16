@@ -14,9 +14,9 @@
 //#include "lib/lib_list.hpp"
 
 namespace parser {
-    void std_out(std::string out_text) {
+    void std_out(std::string out_text, Memory& memory = memory) {
         if(/*out_text[0] == '$'*/ parser::is_var(out_text)) {
-            std::cout << lib::resolve_string(VarTable::print(out_text));
+            std::cout << lib::resolve_string(VarTable::print(out_text, memory));
             return;
         }
         else if(out_text[0] == '(') {
@@ -40,7 +40,7 @@ void exec_defer(std::stack<std::pair<std::string, int>>& defer_stack, int& depth
     }
 }
 
-Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_defer = false, bool top_return) {
+Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_defer = false, bool top_return, Memory& memory) {
     //if(memory["n"] != nullptr) std::cout << "Track n: " << VarTable::print("$n") << "\n";
     bool warn = true;
     int total_tokens = tokens.size();
@@ -74,7 +74,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
             std::string result = eval(cmd.target);
             Value* return_value = nullptr;
 
-            Value* existing_value = VarTable::get(result, {}, true, true);
+            Value* existing_value = VarTable::get(result, {}, true, true, true, memory);
             bool value_exists = (existing_value != nullptr);
 
             return_value = (/*result[0] == '$'*/ parser::is_var(result) && value_exists) ? copy(existing_value) : make_value(result);
@@ -83,7 +83,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
             if(!is_call_stack_empty) {
                 int original_depth = call_stack.top().second;
                 while(depth != original_depth) {
-                    VarTable::gc(depth);
+                    VarTable::gc(depth, memory);
                     depth--;
                 }
             }
@@ -111,7 +111,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
                     //std::cout << "R_Val evaled: " << r_val << "\n";
                 }*/
                 // std::cout << fn->init[arg * 2] << ": " << r_val << " (" << depth <<")" << "\n";
-                VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth, true);
+                VarTable::set(fn->init[arg * 2], r_val, nullptr, VAR, false, depth, true, memory);
             }
 
             int all = (fn->init.size() / 2);
@@ -136,8 +136,8 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
                 if(cmd.target != "") {
                     // figure out if i need to allow shadowing or not. [TODO]. [DONE]
                     // if variable exists, don't allow, if exists, allow. [DONE]
-                    bool allow_shadowing = VarTable::get(cmd.target, {}, true, true) != nullptr;
-                    VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1, allow_shadowing);
+                    bool allow_shadowing = VarTable::get(cmd.target, {}, true, true, true, memory) != nullptr;
+                    VarTable::set(cmd.target, "", return_value, VAR, true, depth - 1, allow_shadowing, memory);
                     //std::cout << "Targeting " << cmd.target << " to " << return_value->print() << "\n";
                     //if(fn_name == "add") std::cout << "Here\n";
                 }
@@ -146,7 +146,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
                 }
             }
 
-            VarTable::gc(depth);
+            VarTable::gc(depth, memory);
             depth--;
             call_stack.pop();
             if(auto_return) {
@@ -159,7 +159,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
             //std::cout << "Here\n";
             for(int each_reassign = 0; each_reassign < total_reassigns; each_reassign += 2) {
                 //std::cout << "Reassigning " << "[" << cmd.init[each_reassign] << "] to [" << cmd.init[each_reassign + 1] << "]\n";
-                VarTable::set(cmd.init[each_reassign], cmd.init[each_reassign + 1], nullptr, VAR, false, depth);
+                VarTable::set(cmd.init[each_reassign], cmd.init[each_reassign + 1], nullptr, VAR, false, depth, false, memory);
             }
             line++;
             continue;
@@ -293,7 +293,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
                     depth--;
                     loop_stack.pop();
                     if(!init_loop.empty()) {
-                        VarTable::gc_by_names(init_loop.top().second);
+                        VarTable::gc_by_names(init_loop.top().second, memory);
                         init_loop.pop();
                     }
                     continue;
@@ -302,7 +302,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
         }
         else if(tokens[line].head == "}") {
             //std::cout << "Here\n";
-            VarTable::gc(depth);
+            VarTable::gc(depth, memory);
             //std::cout << "Current Depth: " << depth << "\n";
             depth--;
             if(depth < 0) {
@@ -334,7 +334,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
                 //std::cout << "Line: " << line << "\n";
                 //std::cout << "Size: " << loop_stack.size() << "\n";
                 //std::cout << "[" << std::get<0>(loop_stack.top()) << " " << std::get<1>(loop_stack.top()) << " " << std::get<2>(loop_stack.top()) << "]\n";
-                VarTable::gc(depth);
+                VarTable::gc(depth, memory);
                 std::tuple<bool, int, int> top = loop_stack.top();
                 line = std::get<1>(top);
                 depth = std::get<2>(top) - 1;
@@ -356,13 +356,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
                 while(loop_stack.size() != 0 && depth != loop_depth - 1) {
                     line++;
                     if(tokens[line].head == "}") {
-                        VarTable::gc(depth);
+                        VarTable::gc(depth, memory);
                         depth--;
                     }
                 }
                 loop_stack.pop();
                 if(!init_loop.empty()) {
-                    VarTable::gc_by_names(init_loop.top().second);
+                    VarTable::gc_by_names(init_loop.top().second, memory);
                     init_loop.pop();
                 }
                 // std::cout << "Line: " << line << "\n";
@@ -423,14 +423,14 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
             int vars = cmd.init.size();
             bool is_static = ins == "static";
             for(int each = 0; each < vars; each += 2) {
-                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth, true);
+                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth, true, memory);
             }
         }
 
         else if(ins == "inert" && cmd.init.size() != 0) {
             int vars = cmd.init.size();
             for(int each = 0; each < vars; each += 2) {
-                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, INERT, false, depth);
+                VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, INERT, false, depth, false, memory);
             }
         }
 
@@ -442,7 +442,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return = false, bool fn_d
             }
 
             for(int start_val = 0; start_val < cmd_size; start_val++) {
-                parser::std_out(cmd.values[start_val]);
+                parser::std_out(cmd.values[start_val], memory);
             }
         }
 

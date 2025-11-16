@@ -11,6 +11,9 @@ BIN_FILE="bin/kal-$(echo $(uname) | tr A-Z a-z)-$(uname -m)"
 OPTIMIZATION="-O2"
 STD="-std=c++20"
 
+LIBKAL_SRC="embed/libkal.cpp"
+LIBKAL_OBJ="bin/libkal.o"
+
 STATIC_ELF=""
 if [ -z $STATIC ]; then
     STATIC=0
@@ -38,6 +41,7 @@ function get_help() {
     echo -e "    │ ${DEFAULT_BOLD}./build.sh compile      ${GREEN}Compiles Kal.                   │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh test         ${GREEN}Runs Tests.                     │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh docker       ${GREEN}Runs Docker container for Kal.  │"
+    echo -e "    │ ${DEFAULT_BOLD}./build.sh embed        ${GREEN}Compiles libkal.o library.      │"
     echo -e "    │ ${DEFAULT_BOLD}./build.sh help         ${GREEN}Displays this help message.     │"
     echo -e "    │                                                         │"
     echo -e "    └─────────────────────────────────────────────────────────┘${DEFAULT}\n"
@@ -56,6 +60,12 @@ function compile() {
     echo -e "${GREEN} * Compiling Kal${DEFAULT}"
     ! [ -d bin ] && mkdir bin
     ${CC} ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${SRC_FILE} -o ${BIN_FILE}
+}
+
+function embed() {
+    echo -e "${GREEN} * Compiling libkal.o${DEFAULT}"
+    ! [ -d bin ] && mkdir bin
+    ${CC} -c ${NO_DEBUG_INFO} ${OPTIMIZATION} ${STD} ${FLAGS} ${LIBKAL_SRC} -o ${LIBKAL_OBJ}
 }
 
 function vim_ft() {
@@ -94,6 +104,8 @@ elif [ "$1" == "install" ]; then
     install
 elif [ "$1" == "test" ]; then
     run_tests
+elif [ "$1" == "embed" ]; then
+    embed
 else
     get_help
 fi
