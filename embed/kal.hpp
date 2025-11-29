@@ -14,6 +14,10 @@ class Kal {
         Memory k_memory;
 
     public:
-        Value* exec(std::string, Table = {});
+        std::string exec(std::string, Table = {});
+        double number(std::string);
+        std::string string(std::string);
+        std::string list(std::string, int);
+        std::string dict(std::string, std::string);
         ~Kal();
 };

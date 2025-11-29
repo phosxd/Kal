@@ -65,7 +65,7 @@ std::string format_code(std::string& code, Table& table) {
     return formatted_code.str();
 }
 
-Value* Kal::exec(std::string code, Table table) {
+std::string Kal::exec(std::string code, Table table) {
     if(!table.empty()) {
         code = format_code(code, table);
     }
@@ -73,7 +73,57 @@ Value* Kal::exec(std::string code, Table table) {
     std::vector<std::string> lines = preproc::preprocess(code);
     std::vector<Token> tokens = lexer::tokenize(lines);
     Value* ret_val = line_exec(tokens, false, false, true, k_memory);
-    return ret_val;
+
+    if(ret_val == nullptr) {
+        return "";
+    }
+
+    std::string value = ret_val->print();
+    delete ret_val;
+    return value;
+}
+
+double Kal::number(std::string value) {
+    if(is_num(value[0])) {
+        return std::stod(value);
+    }
+
+    return 0;
+}
+
+std::string Kal::string(std::string value) {
+    int size = value.size();
+    if(value[0] == '"' && value[size - 1] == '"') {
+        return value.substr(1, size - 2);
+    }
+
+    return "";
+}
+
+std::string Kal::list(std::string value, int index) {
+    int begin = 0;
+    std::vector<std::string> kal_list = parser::parse_list(value, begin);
+
+    int size = kal_list.size();
+    if(index < size) {
+        return kal_list[index];
+    }
+
+    return "";
+}
+
+std::string Kal::dict(std::string value, std::string key) {
+    int begin = 0;
+    std::vector<std::string> kal_dict = parse_map(value, begin);
+
+    int size = kal_dict.size();
+    for(int index = 0; index < size; index += 2) {
+        if(kal_dict[index] == key) {
+            return kal_dict[index + 1];
+        }
+    }
+
+    return "";
 }
 
 Kal::~Kal() {

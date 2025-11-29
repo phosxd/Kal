@@ -19,8 +19,8 @@ extern "C" {
         return new Kal();
     }
 
-    Value* kal_exec(Kal* kal, const char* code, Table* table) {
-        return kal->exec(std::string(code), *table);
+    const char* kal_exec(Kal* kal, const char* code, Table* table) {
+        return (kal->exec(std::string(code), *table)).c_str();
     }
 
     void free_kal(Kal* kal) {
