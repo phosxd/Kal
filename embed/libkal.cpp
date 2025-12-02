@@ -80,9 +80,8 @@ Result::Result(std::string value) {
         dict = new std::unordered_map<std::string, std::string>();
         std::vector<std::string> dict_values = parse_map(value, begin);
         int size = dict_values.size();
-        for(int idx = 0; idx < size; idx++) {
+        for(int idx = 0; idx < size; idx += 2) {
             (*dict)[dict_values[idx]] = dict_values[idx + 1];
-            std::cout << dict_values[idx] << " -> " << dict_values[idx + 1] << "\n";
         }
     }
 }
