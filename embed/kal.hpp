@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <array>
 #include <unordered_map>
 
 class Value;
@@ -18,10 +19,20 @@ class Result {
         std::vector<std::string>* list = nullptr;
         std::unordered_map<std::string, std::string>* dict = nullptr;
 
+        Result();
         Result(std::string);
+        Result(const Result&);
+        ~Result();
+
         Result operator[](int);
         Result operator[](std::string);
-        ~Result();
+        Result operator=(const Result&);
+
+        double to_number();
+        std::string to_string();
+        std::vector<Result> to_list();
+        std::unordered_map<std::string, Result> to_dict();
+
 };
 
 std::ostream& operator<<(std::ostream&, Result);
@@ -32,9 +43,5 @@ class Kal {
 
     public:
         std::string exec(std::string, Table = {});
-        double number(std::string);
-        std::string string(std::string);
-        std::string list(std::string, int);
-        std::string dict(std::string, std::string);
         ~Kal();
 };

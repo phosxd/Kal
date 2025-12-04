@@ -65,6 +65,8 @@ std::string format_code(std::string& code, Table& table) {
     return formatted_code.str();
 }
 
+Result::Result() {}
+
 Result::Result(std::string value) {
     int begin = 0;
     if(is_num(value[0])) {
@@ -86,6 +88,37 @@ Result::Result(std::string value) {
     }
 }
 
+Result::Result(const Result& result) {
+    if(result.number) {
+        number = new double(*result.number);
+    }
+    else if(result.string) {
+        string = new std::string(*result.string);
+    }
+    else if(result.list) {
+        list = new std::vector<std::string>(*result.list);
+    }
+    else if(result.dict) {
+        dict = new std::unordered_map<std::string, std::string>(*result.dict);
+    }
+}
+
+Result Result::operator=(const Result& result) {
+    if(result.number) {
+        number = new double(*result.number);
+    }
+    else if(result.string) {
+        string = new std::string(*result.string);
+    }
+    else if(result.list) {
+        list = new std::vector<std::string>(*result.list);
+    }
+    else if(result.dict) {
+        dict = new std::unordered_map<std::string, std::string>(*result.dict);
+    }
+    return *this;
+} 
+
 Result Result::operator[](int index) {
     if(list == nullptr) {
         std::cout << "List not found.\n";
@@ -106,35 +139,107 @@ Result Result::operator[](std::string key) {
     return Result((*dict)[key]);
 }
 
+double Result::to_number() {
+    if(number == nullptr) {
+        std::cout << "Not a number.\n";
+        exit(1);
+    }
+    return *number;
+}
+
+std::string Result::to_string() {
+    if(string == nullptr) {
+        std::cout << "Not a string.\n";
+        exit(1);
+    }
+    int length = string->size();
+    return string->substr(1, length - 2);
+}
+
+std::vector<Result> Result::to_list() {
+    if(list == nullptr) {
+        std::cout << "Not a list.\n";
+        exit(1);
+    }
+    int list_size = list->size();
+    std::vector<Result> result_list;
+    result_list.reserve(list_size);
+    for(std::string each : *list) {
+        result_list.emplace_back(Result(each));
+    }
+    return result_list;
+}
+
+std::unordered_map<std::string, Result> Result::to_dict() {
+    if(dict == nullptr) {
+        std::cout << "Not a dict.\n";
+        exit(1);
+    }
+    std::unordered_map<std::string, Result> dict_result;
+    std::unordered_map<std::string, std::string>::iterator dict_itr;
+    for(dict_itr = dict->begin(); dict_itr != dict->end(); dict_itr++) {
+        dict_result[dict_itr->first] = Result(dict_result[dict_itr->second]);
+    }
+    return dict_result;
+}
+
+Result::~Result() {
+    if(number) {
+        //std::cout << "a\n";
+        delete number;
+        number = nullptr;
+    }
+    else if(string) {
+        //std::cout << "b\n";
+        delete string;
+        string = nullptr;
+    }
+    else if(list) {
+        //std::cout << "c\n";
+        delete list;
+        list = nullptr;
+    }
+    else if(dict) {
+        //std::cout << "d\n";
+        delete dict;
+        dict = nullptr;
+    }
+}
+
 std::ostream& operator<<(std::ostream& out, Result result) {
-    out << "Result(";
+    std::string open = "Result(";
+    std::string close = ")";
+
+    out << open;
     if(result.number != nullptr) {
         out << *(result.number);
     }
     else if(result.string != nullptr) {
         out << *(result.string);
     }
-    out << ")";
+    else if(result.list != nullptr) {
+        int list_size = result.list->size();
+        std::string sep = ", ";
+        out << "[";
+        for(int index = 0; index < list_size; index++) {
+            out << (*result.list)[index];
+            if(index != list_size - 1) {
+                out << sep;
+            }
+        }
+        out << "]";
+    }
+    else if(result.dict != nullptr) {
+        std::unordered_map<std::string, std::string>::iterator dict_itr, dict_end;
+        dict_end = result.dict->end();
+        out << "#(";
+        for(dict_itr = result.dict->begin(); dict_itr != dict_end; dict_itr++) {
+            out << dict_itr->first << " -> " << dict_itr->second << ", ";
+        }
+        out << ")";
+    }
+    out << close;
     return out;
-}
-
-Result::~Result() {
-    if(number) {
-        delete number;
-        number = nullptr;
-    }
-    else if(string) {
-        delete string;
-        string = nullptr;
-    }
-    else if(list) {
-        delete list;
-        list = nullptr;
-    }
-    else if(dict) {
-        delete dict;
-        dict = nullptr;
-    }
 }
 
 std::string Kal::exec(std::string code, Table table) {
@@ -153,49 +258,6 @@ std::string Kal::exec(std::string code, Table table) {
     std::string value = ret_val->print();
     delete ret_val;
     return value;
-}
-
-double Kal::number(std::string value) {
-    if(is_num(value[0])) {
-        return std::stod(value);
-    }
-
-    return 0;
-}
-
-std::string Kal::string(std::string value) {
-    int size = value.size();
-    if(value[0] == '"' && value[size - 1] == '"') {
-        return value.substr(1, size - 2);
-    }
-
-    return "";
-}
-
-std::string Kal::list(std::string value, int index) {
-    int begin = 0;
-    std::vector<std::string> kal_list = parser::parse_list(value, begin);
-
-    int size = kal_list.size();
-    if(index < size) {
-        return kal_list[index];
-    }
-
-    return "";
-}
-
-std::string Kal::dict(std::string value, std::string key) {
-    int begin = 0;
-    std::vector<std::string> kal_dict = parse_map(value, begin);
-
-    int size = kal_dict.size();
-    for(int index = 0; index < size; index += 2) {
-        if(kal_dict[index] == key) {
-            return kal_dict[index + 1];
-        }
-    }
-
-    return "";
 }
 
 Kal::~Kal() {
