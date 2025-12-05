@@ -14,6 +14,7 @@ using Table = std::unordered_map<std::string, std::string>;
 class Result {
     private:
     public:
+        bool is_null = false;
         double* number = nullptr;
         std::string* string = nullptr;
         std::vector<std::string>* list = nullptr;
@@ -32,6 +33,7 @@ class Result {
         std::string to_string();
         std::vector<Result> to_list();
         std::unordered_map<std::string, Result> to_dict();
+        bool to_null();
 
 };
 

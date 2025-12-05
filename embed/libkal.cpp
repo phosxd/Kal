@@ -86,6 +86,9 @@ Result::Result(std::string value) {
             (*dict)[dict_values[idx]] = dict_values[idx + 1];
         }
     }
+    else if(value == "null") {
+        is_null = true;
+    }
 }
 
 Result::Result(const Result& result) {
@@ -101,6 +104,9 @@ Result::Result(const Result& result) {
     else if(result.dict) {
         dict = new std::unordered_map<std::string, std::string>(*result.dict);
     }
+    else if(result.is_null) {
+        is_null = true;
+    }
 }
 
 Result Result::operator=(const Result& result) {
@@ -115,6 +121,9 @@ Result Result::operator=(const Result& result) {
     }
     else if(result.dict) {
         dict = new std::unordered_map<std::string, std::string>(*result.dict);
+    }
+    else if(result.is_null) {
+        is_null = true;
     }
     return *this;
 } 
@@ -183,6 +192,10 @@ std::unordered_map<std::string, Result> Result::to_dict() {
     return dict_result;
 }
 
+bool Result::to_null() {
+    return is_null;
+}
+
 Result::~Result() {
     if(number) {
         //std::cout << "a\n";
@@ -238,6 +251,9 @@ std::ostream& operator<<(std::ostream& out, Result result) {
         }
         out << ")";
     }
+    else if(result.is_null) {
+        out << "null";
+    }
     out << close;
     return out;
 }
@@ -253,7 +269,7 @@ Result Kal::exec(std::string code, Table table) {
 
     if(ret_val == nullptr) {
         // return null
-        return Result("");
+        return Result("null");
     }
 
     std::string value = ret_val->print();
