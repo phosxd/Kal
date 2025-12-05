@@ -5,12 +5,13 @@
 #include <utility>
 #include <unordered_map>
 
+class Value;
+using Memory = std::unordered_map<std::string, Value*>;
+Memory memory;
+
 #include "types.hpp"
 
-using Memory = std::unordered_map<std::string, Value*>;
-
 int depth = 0;
-Memory memory;
 
 enum Type {
     VAR,

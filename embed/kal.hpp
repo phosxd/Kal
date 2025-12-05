@@ -42,6 +42,6 @@ class Kal {
         Memory k_memory;
 
     public:
-        std::string exec(std::string, Table = {});
+        Result exec(std::string, Table = {});
         ~Kal();
 };

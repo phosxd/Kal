@@ -242,7 +242,7 @@ std::ostream& operator<<(std::ostream& out, Result result) {
     return out;
 }
 
-std::string Kal::exec(std::string code, Table table) {
+Result Kal::exec(std::string code, Table table) {
     if(!table.empty()) {
         code = format_code(code, table);
     }
@@ -252,12 +252,14 @@ std::string Kal::exec(std::string code, Table table) {
     Value* ret_val = line_exec(tokens, false, false, true, k_memory);
 
     if(ret_val == nullptr) {
-        return "";
+        // return null
+        return Result("");
     }
 
     std::string value = ret_val->print();
+    //std::cout << "Value = " << value << "\n";
     delete ret_val;
-    return value;
+    return Result(value);
 }
 
 Kal::~Kal() {

@@ -3,6 +3,7 @@
 #include <sstream>
 #include <stack>
 #include <utility>
+//#include "globals.hpp"
 #include "config.hpp"
 
 class Value {
@@ -55,7 +56,7 @@ class List : public Value {
         std::vector<Value*> items;
         std::string type = "List";
         List();
-        List(std::string);
+        List(std::string, Memory&);
         std::string print();
         ~List();
 };

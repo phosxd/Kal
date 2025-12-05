@@ -14,7 +14,7 @@
 //#include "lib/lib_list.hpp"
 
 namespace parser {
-    void std_out(std::string out_text, Memory& memory = memory) {
+    void std_out(std::string out_text, Memory& memory) {
         if(/*out_text[0] == '$'*/ parser::is_var(out_text)) {
             std::cout << lib::resolve_string(VarTable::print(out_text, memory));
             return;

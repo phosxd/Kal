@@ -34,7 +34,7 @@ std::vector<std::string> parse_map(std::string text, int& index) {
 
 Value* copy(Value*);
 
-Value* make_value(std::string value, Memory& memory = memory) {
+Value* make_value(std::string value, Memory& memory) {
     Value* val = nullptr;
     if((value[0] >= '0' && value[0] <= '9') || value[0] == '-') {
         val = new Number(value);
@@ -43,7 +43,7 @@ Value* make_value(std::string value, Memory& memory = memory) {
         val = new String(value.c_str());
     }
     else if(value[0] == '[') {
-        val = new List(value);
+        val = new List(value, memory);
     }
     else if(value[0] == '#' && value[1] == '(') {
         val = new Dict(value);
@@ -109,7 +109,7 @@ String::~String() {
 
 List::List() {}
 
-List::List(std::string list) {
+List::List(std::string list, Memory& memory) {
     int index = 0;
     std::vector<std::string> values = parser::parse_list(list, index);
     for(std::string v : values) {
@@ -132,7 +132,7 @@ List::List(std::string list) {
         else if(v[0] == '$') {
             items.emplace_back(VarTable::get(v, {}));
         }*/
-        items.emplace_back(make_value(eval(v, memory)));
+        items.emplace_back(make_value(eval(v, memory), memory));
         // 1st make_value
     }
 }
@@ -145,19 +145,19 @@ std::string List::print() {
     disp << "[";
     for(int v = 0; v < size; v++) {
         if(items[v]->type == "Number") {
-             disp << ((Number*)items[v])->print();
+            disp << ((Number*)items[v])->print();
         }
         else if(items[v]->type == "String") {
-             disp << ((String*)items[v])->print();
+            disp << ((String*)items[v])->print();
         }
         else if(items[v]->type == "Dict") {
-             disp << ((Dict*)items[v])->print();
+            disp << ((Dict*)items[v])->print();
         }
         else if(items[v]->type == "Null") {
             disp << ((Null*)items[v])->print();
         }
         else {
-             disp << items[v]->print();
+            disp << items[v]->print();
         }
 
         if(v == last) {
@@ -211,7 +211,7 @@ Dict::Dict(std::string dict_val) {
         else if(kv[i + 1][0] == '$') {
             dict[kv[i]] = VarTable::get(kv[i + 1], {});
         }*/
-        dict[kv[i]] = make_value(eval(kv[i + 1], memory));
+        dict[kv[i]] = make_value(eval(kv[i + 1], memory), memory);
     }
 }
 
@@ -569,7 +569,7 @@ namespace VarTable {
             }
             else {
                 if(structure[0] == '[') {
-                    packed_items = new List(structure);
+                    packed_items = new List(structure, memory);
                 }
                 else if(structure[0] == '#' && structure[1] == '(') {
                     packed_items = new Dict(structure);
@@ -1107,7 +1107,7 @@ bool compare(std::string first, std::string second, Memory& memory) {
         a = VarTable::get(first, {}, true, true, true, memory);
     }
     else if(first[0] == '[') {
-        a = new List(first);
+        a = new List(first, memory);
         a_temp = true;
     }
     else if(first[0] == '#' && first[1] == '(') {
@@ -1119,7 +1119,7 @@ bool compare(std::string first, std::string second, Memory& memory) {
         b = VarTable::get(second, {}, true, true, true, memory);
     }
     else if(second[0] == '[') {
-        b = new List(second);
+        b = new List(second, memory);
         b_temp = true;
     }
     else if(second[0] == '#' && second[1] == '(') {
@@ -1146,7 +1146,7 @@ bool compare(Value* first, std::string second, Memory& memory) {
         b = VarTable::get(second, {}, true, true, true, memory);
     }
     if(second[0] == '[') {
-        b = new List(second);
+        b = new List(second, memory);
         temp = true;
     }
     else if(second[0] == '#' && second[1] == '(') {

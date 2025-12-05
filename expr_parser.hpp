@@ -173,7 +173,7 @@ std::string ternary_op(std::string& token, std::string& first, std::string& seco
     return first;
 }
 
-std::string fstr(const std::string& text, Memory& memory = memory) {
+std::string fstr(const std::string& text, Memory& memory) {
     int index = 0;
     std::vector<std::string> values = parser::parse_fstr(text, index);
     int size = values.size();
@@ -217,7 +217,7 @@ std::string fstr(const std::string& text, Memory& memory = memory) {
     return fstring;
 }
 
-std::string eval_indices(const std::string& text, int& index, Memory& memory = memory) {
+std::string eval_indices(const std::string& text, int& index, Memory& memory) {
     int size = text.size();
     std::string current, evaluated = "";
     while(index < size) {
@@ -268,7 +268,7 @@ std::string expand_var(std::string var, Memory& memory) {
     return variable;
 }
 
-bool is_list_or_dict(std::string structure, Memory& memory = memory) {
+bool is_list_or_dict(std::string structure, Memory& memory) {
     if(structure[0] == '[' || (structure[0] == '#' && structure[1] == '(')) {
         return true;
     }
@@ -281,7 +281,7 @@ bool is_list_or_dict(std::string structure, Memory& memory = memory) {
     return false;
 }
 
-bool is_num(std::string& data, Memory& memory = memory) {
+bool is_num(std::string& data, Memory& memory) {
     if(/*data[0] == '$'*/ parser::is_var(data)/* && data[1] != '&'*/) {
         Value* data_temp = VarTable::get(data, {}, true, true, true, memory);
         if(dynamic_cast<Number*>(data_temp)) {
@@ -294,7 +294,7 @@ bool is_num(std::string& data, Memory& memory = memory) {
     return false;
 }
 
-bool is_list(std::string& structure, Memory& memory = memory) {
+bool is_list(std::string& structure, Memory& memory) {
     if(structure[0] == '[') {
         return true;
     }
