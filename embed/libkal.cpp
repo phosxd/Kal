@@ -198,22 +198,18 @@ bool Result::to_null() {
 
 Result::~Result() {
     if(number) {
-        //std::cout << "a\n";
         delete number;
         number = nullptr;
     }
     else if(string) {
-        //std::cout << "b\n";
         delete string;
         string = nullptr;
     }
     else if(list) {
-        //std::cout << "c\n";
         delete list;
         list = nullptr;
     }
     else if(dict) {
-        //std::cout << "d\n";
         delete dict;
         dict = nullptr;
     }
@@ -268,12 +264,10 @@ Result Kal::exec(std::string code, Table table) {
     Value* ret_val = line_exec(tokens, false, false, true, k_memory);
 
     if(ret_val == nullptr) {
-        // return null
         return Result("null");
     }
 
     std::string value = ret_val->print();
-    //std::cout << "Value = " << value << "\n";
     delete ret_val;
     return Result(value);
 }

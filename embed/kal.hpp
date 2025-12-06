@@ -6,10 +6,13 @@
 #include <unordered_map>
 
 class Value;
+class Result;
 struct Token;
 
 using Memory = std::unordered_map<std::string, Value*>;
 using Table = std::unordered_map<std::string, std::string>;
+using ResultList = std::vector<Result>;
+using ResultDict = std::unordered_map<std::string, Result>;
 
 class Result {
     private:
