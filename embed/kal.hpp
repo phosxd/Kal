@@ -41,7 +41,7 @@ class Result {
 
 };
 
-std::ostream& operator<<(std::ostream&, Result);
+std::ostream& operator<<(std::ostream&, const Result&);
 
 class Kal {
     private:

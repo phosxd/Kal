@@ -93,6 +93,7 @@ Result::Result(std::string value) {
 }
 
 Result::Result(const Result& result) {
+    this->value = result.value;
     if(result.number) {
         number = new double(*result.number);
     }
@@ -111,6 +112,7 @@ Result::Result(const Result& result) {
 }
 
 Result Result::operator=(const Result& result) {
+    this->value = result.value;
     if(result.number) {
         number = new double(*result.number);
     }
@@ -216,42 +218,8 @@ Result::~Result() {
     }
 }
 
-std::ostream& operator<<(std::ostream& out, Result result) {
-    std::string open = "Result(";
-    std::string close = ")";
-
-    out << open;
-    if(result.number != nullptr) {
-        out << *(result.number);
-    }
-    else if(result.string != nullptr) {
-        out << *(result.string);
-    }
-    else if(result.list != nullptr) {
-        int list_size = result.list->size();
-        std::string sep = ", ";
-        out << "[";
-        for(int index = 0; index < list_size; index++) {
-            out << (*result.list)[index];
-            if(index != list_size - 1) {
-                out << sep;
-            }
-        }
-        out << "]";
-    }
-    else if(result.dict != nullptr) {
-        std::unordered_map<std::string, std::string>::iterator dict_itr, dict_end;
-        dict_end = result.dict->end();
-        out << "#(";
-        for(dict_itr = result.dict->begin(); dict_itr != dict_end; dict_itr++) {
-            out << dict_itr->first << " -> " << dict_itr->second << ", ";
-        }
-        out << ")";
-    }
-    else if(result.is_null) {
-        out << "null";
-    }
-    out << close;
+std::ostream& operator<<(std::ostream& out, const Result& result) {
+    out << "Result(" << result.value << ")";
     return out;
 }
 
