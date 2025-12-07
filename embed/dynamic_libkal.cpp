@@ -39,6 +39,28 @@ extern "C" {
 }
 
 extern "C" {
+    ResultDict* new_dict() {
+        return new ResultDict;
+    }
+
+    void extract_to_dict(ResultDict* dict, Result* result) {
+        ResultDict temp_dict = result->to_dict();
+        ResultDict::iterator itr;
+        for(itr = dict->begin(); itr != dict->end(); itr++) {
+            (*dict)[itr->first] = Result(itr->second);
+        }
+    }
+
+    Result* dict_key(ResultDict* dict, char const* key) {
+        return new Result((*dict)[std::string(key)]);
+    }
+
+    void free_dict(ResultDict* dict) {
+        delete dict;
+    }
+}
+
+extern "C" {
     Result* new_result(const char* value) {
         return new Result(std::string(value));
     }
@@ -63,8 +85,8 @@ extern "C" {
         return result->to_null();
     }
 
-    void print_result(Result* result) {
-        std::cout << *result << "\n";
+    const char* result_display(Result* result) {
+        return (result->value).c_str();
     }
 
     void free_result(Result* result) {

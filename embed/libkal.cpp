@@ -68,6 +68,7 @@ std::string format_code(std::string& code, Table& table) {
 Result::Result() {}
 
 Result::Result(std::string value) {
+    this->value = value;
     int begin = 0;
     if(is_num(value[0])) {
         number = new double(std::stod(parser::parse_number(value, begin)));

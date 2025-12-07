@@ -17,6 +17,7 @@ using ResultDict = std::unordered_map<std::string, Result>;
 class Result {
     private:
     public:
+        std::string value;
         bool is_null = false;
         double* number = nullptr;
         std::string* string = nullptr;
