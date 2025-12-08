@@ -11,6 +11,7 @@
 #include "test_var.hpp"
 #include "test_control_flow.hpp"
 #include "test_fn.hpp"
+#include "test_libkal.hpp"
 
 int main() {
     test_arg_parser();
@@ -22,6 +23,7 @@ int main() {
     test_control_flow();
     test_shadowing();
     test_fn();
+    test_libkal_o();
 
     exit_successfully();
     return 0;
