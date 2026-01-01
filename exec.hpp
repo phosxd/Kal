@@ -130,26 +130,29 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             Fn* fn = Functions::fn[fn_name];
             int args_size = cmd.values.size();
 
+            bool is_variadic = false;
+            int last_arg = fn->init.size() - 2;
+            if((last_arg >= 0) && (fn->init[last_arg][0] == '.')) {
+                last_arg /= 2;
+                is_variadic = true;
+            }
+
             depth++;
             int arg;
             for(arg = 0; arg < args_size; arg++) {
+                if(fn->init[arg * 2][0] == '.') {
+                    break;
+                }
+                if(is_variadic && (arg >= last_arg)) {
+                    break;
+                }
                 std::string& r_val = cmd.values[arg];
-                // perhaps eval here is not needed.
-                /*if(r_val[0] == '(' || (r_val[0] == '$' && r_val[1] == '(')) {
-                    //std::cout << "R_Val: " << r_val << "\n";
-                    r_val = eval(r_val);
-                    //std::cout << "R_Val evaled: " << r_val << "\n";
-                }*/
-                // std::cout << fn->init[arg * 2] << ": " << r_val << " (" << depth <<")" << "\n";
                 if(r_val[0] == '.') {
                     std::string operand = r_val.substr(3);
                     Dict* dict_value = dynamic_cast<Dict*>(make_value(operand, memory));
-                    //int size = dice_value->keys.size();
                     for(const std::string& key : dict_value->keys) {
-                        //std::cout << "Key: " << key << "\n";
                         Value* value = dict_value->dict[key];
                         VarTable::set(key, "", value, VAR, false, depth, true, memory);
-                        //std::cout << "Value: " << VarTable::print(key, memory) << "\n";
                     }
                     delete dict_value;
                     arg++;
@@ -160,12 +163,25 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
             int all = (fn->init.size() / 2);
             for(int rest = arg; rest < all; rest++) {
+                if(is_variadic && (rest >= last_arg)) {
+                    break;
+                }
                 std::string& r_val = fn->init[(rest * 2) + 1];
                 if(r_val[0] == '(') {
                     r_val = eval(r_val, memory);
                 }
                 VarTable::set(fn->init[rest * 2], r_val, nullptr, VAR, false, depth, true, memory);
-                //std::cout << fn->init[2*rest] << "(" << (2*rest) << ")" << " : " << fn->init[2*rest + 1] << "(" << (2*rest + 1) << ")" << "\n";
+            }
+
+            if(is_variadic) {
+                std::string variadic_arg = fn->init[last_arg * 2].substr(3);
+                List* variadic_values = new List();
+                variadic_values->items.reserve(args_size - last_arg);
+                for(int i = last_arg; i < args_size; i++) {
+                    variadic_values->items.emplace_back(make_value(cmd.values[i], memory));
+                }
+                // see if direct assignment can be made instead of copy.
+                VarTable::set(variadic_arg, "", variadic_values, VAR, true, depth, true, memory);
             }
 
             call_stack.push(std::pair<std::string, int> { fn_name, depth });

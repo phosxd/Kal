@@ -484,7 +484,7 @@ namespace parser {
         return "..." + parse_value(text, index);
     }
 
-    std::vector<std::string> parse_init(std::string text, int& index, /*bool for_dict = false*/ std::string assign_op = "=", int end = 0) {
+    std::vector<std::string> parse_init(std::string text, int& index, std::string assign_op = "=", int end = 0, bool allow_spread = false) {
         std::vector<std::string> tokens;
         //std::string assign_op = "=";
         std::string required_token = "";
@@ -494,10 +494,14 @@ namespace parser {
                 index++;
                 continue;
             }
-            /*if(for_dict) {
-                assign_op = "->";
-            }*/
-            if(/*for_dict*/ assign_op != "=" && text[index] == '"') {
+            if(allow_spread && match(index, text, "...")) {
+                required_token = "..." + parse_value(text, index);
+                tokens.emplace_back(required_token);
+                tokens.emplace_back(null_val);
+                index++;
+                continue;
+            }
+            else if(/*for_dict*/ assign_op != "=" && text[index] == '"') {
                 required_token = parse_string(text, index);
                 index++;
             }
@@ -629,7 +633,7 @@ namespace parser {
             index++;
         }*/
         //std::vector<std::string> args = parse_init(text.substr(index, text_size - index - 1), begin, ":");
-        std::vector<std::string> args = parse_init(text, index, ":", 1);
+        std::vector<std::string> args = parse_init(text, index, ":", 1, true);
         fn_def.reserve(2 + args.size());
         fn_def.insert(fn_def.end(), args.begin(), args.end());
         /*for(std::string& each : args) {
