@@ -655,6 +655,7 @@ namespace parser {
         int index = 0;
         int begin = index;
         int size = text.size();
+        bool range_loop = false;
         if(text.substr(size - 2) != "--") {
             text += "--";
             size += 2;
@@ -665,7 +666,12 @@ namespace parser {
                 index++;
                 continue;
             }
-            if(match(index, text, "--")) {
+            range_loop = match(index, text, "in", false) && WHITESPACE(text, index + 2);
+            if(match(index, text, "--", false) || range_loop) {
+                if(range_loop) {
+                    tokens.emplace_back("in");
+                }
+                index += 2;
                 std::string token = text.substr(begin, index - begin - 2);
                 tokens.emplace_back(lib::trim(token));
                 begin = index;
