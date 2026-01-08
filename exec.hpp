@@ -67,6 +67,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     std::stack<std::pair<bool, int>> conditional_stack;
     std::stack<std::pair<int, std::vector<std::string>>> init_loop;
     std::stack<std::tuple<bool, int, int>> loop_stack;
+    std::stack<std::tuple<Value*, std::string, int, int>> range_stack;
 
     while(line < total_tokens) {
         //std::cout << "Line: " << (line + 1) << " Token: " << tokens[line].head << " Size: " << tokens[line].values.size() << "\n";
@@ -311,6 +312,52 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 }
             }
             else if(tokens[line].head == "loop") {
+                if(tokens[line].values[0] == "in") {
+                    if(range_stack.empty() || (!range_stack.empty() && (std::get<2>(range_stack.top()) != depth))) {
+                        Value* collection = make_value(eval(tokens[line].values[2], memory), memory);
+                        std::string& var = tokens[line].values[1];
+
+                        int index = 0;
+                        bool condition = TO_LIST(collection)->items.size() > index;
+                        VarTable::set(var, "", TO_LIST(collection)->items[index], VAR, false, depth, true, memory);
+                        std::cout << "Index: " << index << "\n";
+                        range_stack.push({ collection, var, depth, index });
+                        loop_stack.push({ condition, line, depth });
+                    }
+                    else {
+                        std::tuple<Value*, std::string, int, int> top_range = range_stack.top();
+                        range_stack.pop();
+                        std::get<3>(top_range) += 1;
+                        int index = std::get<3>(top_range);
+
+                        List* list = TO_LIST(std::get<0>(top_range));
+                        bool condition = list->items.size() > index;
+
+                        if(!condition) {
+                            int local_depth = 1;
+                            while(local_depth != 0) {
+                                line++;
+                                if(tokens[line].values.size() != 0 && tokens[line].values[tokens[line].values.size() - 1] == "{") { local_depth++; }
+                                if(tokens[line].head == "}") { local_depth--; }
+                            }
+                            line++;
+                            depth--;
+                            delete std::get<0>(top_range);
+                            loop_stack.pop();
+                            continue;
+                        }
+                        VarTable::set(std::get<1>(top_range), "", list->items[index], VAR, false, depth, true, memory);
+                        range_stack.push(top_range);
+                        loop_stack.push({ condition, line, depth });
+                    }
+
+                    if(!std::get<0>(loop_stack.top())) {
+                        delete std::get<0>(range_stack.top());
+                        range_stack.pop();
+                    }
+                    line++;
+                    continue;
+                }
                 bool condition = true;
                 int segments = tokens[line].values.size() - 1;
                 if(segments == 1) {
