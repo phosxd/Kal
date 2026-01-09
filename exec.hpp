@@ -330,7 +330,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         int index = std::get<3>(top_range);
 
                         List* list = TO_LIST(std::get<0>(top_range));
-                        bool condition = list->items.size() > index;
+                        bool condition = index < list->items.size();
 
                         if(!condition) {
                             int local_depth = 1;
@@ -350,7 +350,6 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             loop_stack.push({ condition, line, depth });
                         }
                     }
-
                     if(!std::get<0>(loop_stack.top())) {
                         delete std::get<0>(range_stack.top());
                         range_stack.pop();
@@ -427,7 +426,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 std::tuple<bool, int, int> top = loop_stack.top();
                 if(std::get<0>(top)) {
                     line = std::get<1>(top);
-                    if(tokens[line].values.size() - 1 == 3) {
+                    if((tokens[line].values[0] != "in") && (tokens[line].values.size() - 1 == 3)) {
                         VarTable::init_by_string(tokens[line].values[2], depth, false, memory);
                     }
                 }
