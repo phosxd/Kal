@@ -67,7 +67,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     std::stack<std::pair<bool, int>> conditional_stack;
     std::stack<std::pair<int, std::vector<std::string>>> init_loop;
     std::stack<std::tuple<bool, int, int>> loop_stack;
-    std::stack<std::tuple<Value*, std::string, int, int, bool>> range_stack;
+    std::stack<std::tuple<Value*, std::string, int, uint64_t, bool>> range_stack;
 
     while(line < total_tokens) {
         //std::cout << "Line: " << (line + 1) << " Token: " << tokens[line].head << " Size: " << tokens[line].values.size() << "\n";
@@ -325,8 +325,12 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                             VarTable::get(r_val, {}, true, true, true, memory) :
                             make_value(r_val, memory);
 
-                        int index = 0;
-                        bool condition = int(TO_LIST(collection)->items.size()) > index;
+                        if(TO_REF(collection)) {
+                            collection = TO_REF(collection)->ref;
+                        }
+
+                        uint64_t index = 0;
+                        bool condition = index < TO_LIST(collection)->items.size();
                         if(is_ref) {
                             VarTable::set(var, "", new Ref(TO_LIST(collection)->items[index]), VAR, true, depth, false, memory);
                         }
@@ -337,13 +341,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                         loop_stack.push({ condition, line, depth });
                     }
                     else {
-                        std::tuple<Value*, std::string, int, int, bool> top_range = range_stack.top();
+                        std::tuple<Value*, std::string, int, uint64_t, bool> top_range = range_stack.top();
                         range_stack.pop();
                         std::get<3>(top_range) += 1;
-                        int index = std::get<3>(top_range);
+                        uint64_t index = std::get<3>(top_range);
 
                         List* list = TO_LIST(std::get<0>(top_range));
-                        bool condition = index < int(list->items.size());
+                        bool condition = index < list->items.size();
 
                         if(!condition) {
                             int local_depth = 1;
