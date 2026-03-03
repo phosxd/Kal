@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "libkal.cpp"
 
 extern "C" {
@@ -105,7 +107,13 @@ extern "C" {
     }
 
     const char* result_to_string(Result* result) {
-        return (result->to_string()).c_str();
+        std::string string_object = result->to_string();
+        int string_len = string_object.size();
+
+        char* string = new char[string_len + 1];
+        std::strcpy(string, string_object.c_str());
+
+        return string;
     }
 
     bool result_to_null(Result* result) {
