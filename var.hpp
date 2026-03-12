@@ -1217,6 +1217,7 @@ struct BoxedValue {
     void gc() {
         if(to_gc && value != nullptr) {
             delete value;
+            value = nullptr;
         }
     }
 };

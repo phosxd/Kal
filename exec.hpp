@@ -79,6 +79,7 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
     while(line < total_tokens) {
         //std::cout << "Line: " << (line + 1) << " Token: " << tokens[line].head << " Size: " << tokens[line].values.size() << "\n";
         Token& cmd = tokens[line];
+        globals.current_line = tokens[line].line;
         bool cmd_values_modified = false;
         std::vector<std::string> current_cmd_values;
         std::string& ins = cmd.head;

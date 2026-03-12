@@ -721,6 +721,7 @@ namespace parser {
     //int parse_depth = 0;
     Token parse(std::string& text, Config* config, std::string& head) {
         Token token;
+
         int index = 0;
         int text_size = text.size();
 

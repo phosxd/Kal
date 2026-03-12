@@ -58,6 +58,8 @@ namespace lexer {
             std::string head = get_head(current_line);
             config = p_config::get_config(current_line, head);
             Token token = parser::parse(current_line, config, head);
+            token.line = &source_lines[line];
+
             if(token.head == "fn") {
                 Fn* function = new Fn(token.values);
                 int fn_depth = 1;

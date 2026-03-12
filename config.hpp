@@ -10,10 +10,12 @@ std::stack<std::pair<std::string, int>> call_stack;
 
 struct Token {
     std::string head = "",
-                target = "";
+        target = "";
 
     std::vector<std::string> init = {},
-                             values = {};
+        values = {};
+
+    std::string* line;
 };
 
 struct Config {
