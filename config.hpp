@@ -131,6 +131,7 @@ namespace p_config {
         { "popFirst", &group_3 },
         { "reverse", &group_3 },
         { "extend", &group_3 },
+        { "flat", &group_3 },
 
         { "if", &group_4 },
         { "else", &group_4 },

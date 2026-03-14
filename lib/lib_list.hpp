@@ -6,10 +6,14 @@
 #include "../var.hpp"
 
 namespace lib {
-    void list_push(std::string list_name, std::string value, Globals& globals) {
+    void list_push(std::string list_name, std::string value, bool allow_insert, int insert_index, Globals& globals) {
         BoxedValue list = get_or_make(list_name, globals);
-        if(TO_LIST(list.value)) {
-            TO_LIST(list.value)->items.emplace_back(make_value(eval(value, globals), globals));
+        Value* new_value = make_value(eval(value, globals), globals);
+        if(TO_LIST(list.value) && !allow_insert) {
+            TO_LIST(list.value)->items.emplace_back(new_value);
+        }
+        else if(TO_LIST(list.value) && allow_insert) {
+            TO_LIST(list.value)->items.insert(TO_LIST(list.value)->items.begin() + insert_index, new_value);
         }
         list.gc();
     }
@@ -101,5 +105,26 @@ namespace lib {
         }
 
         return extended_list;
+    }
+
+    Value* list_flat(std::string list_name, Globals& globals) {
+        BoxedValue list = get_or_make(list_name, globals);
+        Value* flat_list = new List();
+
+        for(int index = 0; index < TO_LIST(list.value)->items.size(); index++) {
+            List* nested_list = TO_LIST(TO_LIST(list.value)->items[index]);
+            if(nested_list) {
+                int nested_size = nested_list->items.size();
+                for(int nested_index = 0; nested_index < nested_size; nested_index++) {
+                    TO_LIST(flat_list)->items.emplace_back(copy(TO_LIST(nested_list)->items[nested_index]));
+                }
+            }
+            else {
+                TO_LIST(flat_list)->items.emplace_back(copy(TO_LIST(list.value)->items[index]));
+            }
+        }
+
+        list.gc();
+        return flat_list;
     }
 }

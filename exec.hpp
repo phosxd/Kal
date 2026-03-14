@@ -587,7 +587,13 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
         }
 
         else if(ins == "push") {
-            lib::list_push(cmd.values[0], cmd.values[1], globals);
+            int allow_insert = false;
+            int insert_index = 0;
+            if(cmd.values.size() == 3) {
+                allow_insert = true;
+                insert_index = std::stoi(cmd.values[2]);
+            }
+            lib::list_push(cmd.values[0], cmd.values[1], allow_insert, insert_index, globals);
         }
 
         else if(ins == "len") {
@@ -638,6 +644,16 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
 
             VarTable::set(cmd.target, "", extended_list, VAR, true, depth, true, globals);
+        }
+        
+        else if(ins == "flat") {
+            Value* flat_list = lib::list_flat(cmd.values[0], globals);
+
+            if(cmd.target == "") {
+                return flat_list;
+            }
+
+            VarTable::set(cmd.target, "", flat_list, VAR, true, depth, true, globals);
         }
 
         if(cmd_values_modified) {
