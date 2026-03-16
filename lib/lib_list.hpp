@@ -110,7 +110,7 @@ namespace lib {
     Value* list_flat_by_ptr(Value* list, int level, Globals& globals) {
         Value* flat_list = new List();
 
-        for(int index = 0; index < TO_LIST(list)->items.size(); index++) {
+        for(uint64_t index = 0; index < TO_LIST(list)->items.size(); index++) {
             List* nested_list = TO_LIST(TO_LIST(list)->items[index]);
             if(nested_list) {
                 int nested_size = nested_list->items.size();

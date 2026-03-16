@@ -564,6 +564,9 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             int vars = cmd.init.size();
             bool is_static = ins == "static";
             for(int each = 0; each < vars; each += 2) {
+                if(is_static && (globals.memory[cmd.init[each]] != nullptr)) {
+                    continue;
+                }
                 VarTable::set(cmd.init[each], cmd.init[each + 1], nullptr, VAR, false, is_static ? 0 : depth, true, globals);
             }
         }
