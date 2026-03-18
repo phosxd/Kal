@@ -517,19 +517,29 @@ namespace VarTable {
                 if(TO_REF(var)) {
                     var = TO_REF(var)->ref;
                 }
-                if((symbols[i][0] >= '0' && symbols[i][0] <= '9') || (symbols[i][0] == '-')) {
-                    int index = std::stoi(symbols[i]);
-                    int size = TO_LIST(var)->items.size();
-                    if(index < 0) {
-                        index = size + index;
-                    }
-                    if((index >= size) || (index < 0)) {
-                        errors::index_error(call_stack, name, symbols[i]);
-                    }
-                    var = TO_LIST(var)->items[index];
+                std::string access = symbols[i];
+                if(parser::is_var(access)) {
+                    Value* access_ptr = VarTable::get(symbols[i], {}, true, true, true, globals);
+                    access = access_ptr->print();
                 }
-                else if(symbols[i][0] == '"' && symbols[i][symbols[i].size() - 1] == '"') {
-                    std::string key = lib::resolve_string(symbols[i]);
+                if((access[0] >= '0' && access[0] <= '9') || (access[0] == '-')) {
+                    int index = std::stoi(access);
+                    if(TO_LIST(var)) {
+                        int size = TO_LIST(var)->items.size();
+                        if(index < 0) {
+                            index = size + index;
+                        }
+                        if((index >= size) || (index < 0)) {
+                            errors::index_error(call_stack, name, symbols[i]);
+                        }
+                        var = TO_LIST(var)->items[index];
+                    }
+                    else if(TO_STR(var)) {
+                        var = new String('"' + std::string(1, TO_STR(var)->val()[index]) + '"');
+                    }
+                }
+                else if(access[0] == '"' && access[access.size() - 1] == '"') {
+                    std::string key = lib::resolve_string(access);
                     if(TO_DICT(var) && update && (i == (bound - 1)) && (TO_DICT(var)->dict[key] == nullptr)) {
                         return var;
                     }
