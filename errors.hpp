@@ -131,6 +131,14 @@ namespace errors {
         throw_parser_error("Unidentified Keyword.", line);
     }
 
+    void var_number(const std::string& line) {
+        throw_parser_error("Variable name cannot start with a number.", line);
+    }
+
+    void invalid_target_op(const std::string& line) {
+        throw_parser_error("Invalid use of target operator.", line);
+    }
+
     void kal_error(std::string kal_err) {
         std::cerr << style::style["red"] << style::style["bold"] << "Kal:" << style::style["reset"] << style::style["red"] << " " << kal_err << style::style["reset"] << std::endl;
         exit(1);

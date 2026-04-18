@@ -146,7 +146,8 @@ namespace parser {
             index++;
         }
         if(text[index] >= '0' && text[index] <= '9') {
-            END;
+            // ERR:
+            errors::var_number(text);
         }
         while(text_pos < text_size) {
             if(is_var(text, index) || text[index] == '_' || (text[index] >= '0' && text[index] <= '9')) {
@@ -156,7 +157,6 @@ namespace parser {
                 if(text[index] == '\0' || text[index] == '=' || text[index] == ',' || WHITESPACE(text, index) || text[index] == '[') {
                     break;
                 }
-                //END;
             }
             text_pos++;
         }
@@ -591,7 +591,7 @@ namespace parser {
                 index++;
             }
             if(index < text_size && match(index, text, target_operator, false) && /*!for_dict*/ assign_op == "=") {
-                END;
+                errors::invalid_target_op(text);
             }
             if(text[index] == ',' || index == text_size) {
                 tokens.emplace_back(null_val);
@@ -607,7 +607,7 @@ namespace parser {
                 int begin = index;
                 while(text[index] != ',' && index != text_size) {
                     if(index < text_size && match(index, text, target_operator, false) && /*!for_dict*/ assign_op == "=") {
-                        END;
+                        errors::invalid_target_op(text);
                     }
                     if(text[index] == '"') {
                         skip_string(text, index);
@@ -632,9 +632,7 @@ namespace parser {
                 tokens.emplace_back(required_token);
             }
             else {
-                std::cout << text << "\n";
-                std::cout << index << " " << text[index] << std::endl;
-                END;
+                errors::unidentified_keyword(text);
             }
             index++;
         }
