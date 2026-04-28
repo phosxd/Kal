@@ -8,8 +8,10 @@
 #include "types.hpp"
 #include "lib/lib_string.hpp"
 
+using FnTable = std::unordered_map<std::string, Fn*>;
+
 namespace Functions {
-    std::unordered_map<std::string, Fn*> fn;
+    FnTable fn;
 
     void gc() {
         std::unordered_map<std::string, Fn*>::iterator itr, end = fn.end();

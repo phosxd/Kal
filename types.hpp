@@ -99,6 +99,7 @@ class Fn : public Value {
     public:
         std::string type = "Fn";
         Fn(std::vector<std::string>&);
+        Fn(std::string&, std::vector<std::string>&, std::vector<Token>&);
         std::string print();
         std::string name;
         std::vector<std::string> init;
@@ -110,6 +111,9 @@ Fn::Fn(std::vector<std::string>& fn_init) {
     name = fn_init[0];
     init = std::vector<std::string>(fn_init.begin() + 1, fn_init.end() - 1);
 }
+
+Fn::Fn(std::string& fn_name, std::vector<std::string>& fn_init, std::vector<Token>& fn_body) :
+    name(fn_name), init(fn_init), body(fn_body) {}
 
 std::string Fn::print() {
     std::stringstream disp;

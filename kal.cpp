@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
         else {
             kast_file = lib::replace_extension(kal_file, ".kast");
         }
-        kast::encode(kast_file, tokens);
+        kast::encode(kast_file, tokens, Functions::fn);
 
         return 0;
     }
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
     bool is_kast_file = file_name.substr(file_name.size() - 5) == ".kast";
     if(is_kast_file) {
         std::vector<Token> tokens;
-        kast::decode(file_name, tokens);
+        kast::decode(file_name, tokens, Functions::fn);
         line_exec(tokens, false, true, false, globals);
 
         globals.depth = 0;
