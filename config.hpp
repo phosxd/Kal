@@ -106,6 +106,17 @@ Config group_7 {
     .head = true,
 };
 
+/*
+ * Defines an instruction with head and multiple arguments and no target operator.
+ * Format: ins arg1 arg2 arg3 ...
+ */
+Config group_8 = {
+    .id = 8,
+    .head = true,
+    .multiple_args = true,
+    .target = false,
+};
+
 namespace p_config {
     std::unordered_map<std::string, Config*> all_config = {
         { "exit", &group_1 },
@@ -120,8 +131,6 @@ namespace p_config {
         { "inert", &group_2 },
 
         { "style", &group_3 },
-        { "stdout", &group_3 },
-        { "defer", &group_3 },
         { "push", &group_3 },
         { "len", &group_3 },
         { "first", &group_3 },
@@ -151,6 +160,9 @@ namespace p_config {
         { "fn", &group_5 },
         { "<-", &group_6 },
         { "{", &group_7 },
+
+        { "stdout", &group_8 },
+        { "defer", &group_8 },
     };
 
     Config* get_config(std::string& line, std::string& cmd/*, Globals& globals*/) {
