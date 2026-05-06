@@ -198,27 +198,32 @@ namespace lib {
         serialize(name, value);
     }
 
-    void deserialize(std::string name, std::string var, Globals& globals) {
+    Value* deserialize(std::string name) {
         std::ifstream bin(name, std::ios::binary);
         DataType type;
         read_type(bin, type);
         if(type == Atom) {
             std::string data;
             read_atom(bin, data);
-            VarTable::set(var, data, nullptr, VAR, true, globals.depth, true, globals);
+            if(data[0] == '"') {
+                return new String(data);
+            }
+            return new Number(data);
         }
         else if(type == Lst) {
             Value* list;
             read_list(bin, list);
-            VarTable::set(var, "", list, VAR, true, globals.depth, true, globals);
+            return list;
         }
         else if(type == Dic) {
             Value* dict;
             read_dict(bin, dict);
-            VarTable::set(var, "", dict, VAR, true, globals.depth, true, globals);
+            return dict;
         }
         else if(type == Nul) {
-            VarTable::set(var, "", new Null(), VAR, true, globals.depth, true, globals);
+            return new Null();
         }
+
+        return nullptr;
     }
 }

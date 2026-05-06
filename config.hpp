@@ -130,6 +130,7 @@ namespace p_config {
         { "static", &group_2 },
         { "inert", &group_2 },
 
+        { "stdin", &group_3 },
         { "style", &group_3 },
         { "push", &group_3 },
         { "len", &group_3 },

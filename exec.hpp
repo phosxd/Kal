@@ -573,7 +573,16 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
 
         else if(ins == "binRead") {
             EXPECT(1);
-            lib::deserialize(lib::resolve_string(cmd.values[0], globals), cmd.target, globals);
+            Value* bin_value = lib::deserialize(lib::resolve_string(cmd.values[0], globals));
+            if(!auto_return && cmd.target == "") {
+                delete bin_value;
+                line++;
+                continue;
+            }
+            if(cmd.target == "") {
+                return bin_value;
+            }
+            VarTable::set(cmd.target, "", bin_value, VAR, true, depth, true, globals);
         }
 
         else if(ins == "push") {
