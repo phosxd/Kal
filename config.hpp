@@ -121,7 +121,6 @@ namespace p_config {
     std::unordered_map<std::string, Config*> all_config = {
         { "exit", &group_1 },
         { "warn", &group_1 },
-        { "stdin", &group_1 },
         { "break", &group_1 },
         { "continue", &group_1 },
 

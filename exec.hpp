@@ -564,6 +564,18 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             }
         }
 
+        else if(ins == "stdin") {
+            EXPECT(1);
+            std::cout << lib::resolve_string(cmd.values[0], globals);
+            std::string input;
+            std::cin >> input;
+            Value* input_value = new String('"' + input + '"');
+            if(cmd.target == "") {
+                return input_value;
+            }
+            VarTable::set(cmd.target, "", input_value, VAR, true, depth, true, globals);
+        }
+
         else if(ins == "binWrite") {
             EXPECT(2);
             BoxedValue data = get_or_make(cmd.values[0], globals);
