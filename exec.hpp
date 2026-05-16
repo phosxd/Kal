@@ -247,7 +247,11 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             current_depth = depth;
             if(tokens[line].head == "if") {
                 // might need to refactor values into a variable.
-                bool condition = eval(tokens[line].values[0], globals) == "1";
+                std::string value = eval(tokens[line].values[0], globals);
+                if(parser::is_var(value)) {
+                    value = VarTable::print(value, globals);
+                }
+                bool condition = value == "1";
                 conditional_stack.push({ condition, depth });
                 if(conditional_stack.top().first && tokens[line].head != "else") {
                     line++;

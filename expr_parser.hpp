@@ -302,7 +302,7 @@ bool is_list(std::string& structure, Globals& globals) {
 std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
     std::deque<std::string> expr;
     std::string back = rpn.back();
-    if((back[0] >= '0' && back[0] <= '9') || (parser::is_var(back)) || back[0] == '"') {
+    if((back[0] >= '0' && back[0] <= '9') || (parser::is_var(back)) || back[0] == '"' || (back[0] == '$' && back[1] == '(')) {
         expr.push_back(back);
         rpn.pop_back();
     }
@@ -311,7 +311,7 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
         rpn.pop_back();
 
         std::string second = rpn.back();
-        if(!((second[0] >= '0' && second[0] <= '9') || (parser::is_var(second)) || second[0] == '"')) {
+        if(!((second[0] >= '0' && second[0] <= '9') || (parser::is_var(second)) || second[0] == '"') || (second[0] == '$' && second[1] == '(')) {
             std::deque<std::string> second_expr = extract_operand(rpn);
             while(!second_expr.empty()) {
                 expr.push_front(second_expr.back());
@@ -325,7 +325,7 @@ std::deque<std::string> extract_operand(std::deque<std::string>& rpn) {
 
         if(back != "0n" && back != "!" && back != "~") {
             std::string first = rpn.back();
-            if(!((first[0] >= '0' && first[0] <= '9') || (parser::is_var(second)) || first[0] == '"')) {
+            if(!((first[0] >= '0' && first[0] <= '9') || (parser::is_var(second)) || first[0] == '"') || (first[0] == '$' && first[1] == '(')) {
                 std::deque<std::string> first_expr = extract_operand(rpn);
                 while(!first_expr.empty()) {
                     expr.push_front(first_expr.back());
@@ -352,10 +352,8 @@ void perform_shortcircuit(std::deque<std::string>& rpn) {
         rpn.push_back(first_result);
     }
     else {
-        while(!first.empty()) {
-            rpn.push_back(first.front());
-            first.pop_front();
-        }
+        rpn.push_back(first_result);
+
         while(!second.empty()) {
             rpn.push_back(second.front());
             second.pop_front();
