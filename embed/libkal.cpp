@@ -3,6 +3,7 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "../globals.hpp"
 #include "../config.hpp"
 #include "../var.hpp"
 #include "../exec.hpp"
@@ -223,6 +224,10 @@ std::ostream& operator<<(std::ostream& out, const Result& result) {
     return out;
 }
 
+Kal::Kal() {
+    k_globals = new Globals;
+}
+
 Result Kal::exec(std::string code, Table table) {
     if(!table.empty()) {
         code = format_code(code, table);
@@ -230,7 +235,7 @@ Result Kal::exec(std::string code, Table table) {
 
     std::vector<std::string> lines = preproc::preprocess(code);
     std::vector<Token> tokens = lexer::tokenize(lines);
-    Value* ret_val = line_exec(tokens, false, false, true, k_globals);
+    Value* ret_val = line_exec(tokens, false, false, true, *k_globals);
 
     if(ret_val == nullptr) {
         return Result("null");
@@ -242,5 +247,6 @@ Result Kal::exec(std::string code, Table table) {
 }
 
 Kal::~Kal() {
-    VarTable::gc(k_globals);
+    VarTable::gc(*k_globals);
+    delete k_globals;
 }

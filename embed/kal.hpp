@@ -8,6 +8,7 @@
 class Value;
 class Result;
 struct Token;
+struct Globals;
 
 using Memory = std::unordered_map<std::string, Value*>;
 using Table = std::unordered_map<std::string, std::string>;
@@ -45,9 +46,10 @@ std::ostream& operator<<(std::ostream&, const Result&);
 
 class Kal {
     private:
-        Globals k_globals;
+        Globals* k_globals;
 
     public:
+        Kal();
         Result exec(std::string, Table = {});
         ~Kal();
 };
