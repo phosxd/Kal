@@ -275,4 +275,8 @@ namespace errors {
     void invalid_ref(Globals& globals, const std::string& ref_name) {
         throw_err(globals, "Reference", "Dangling reference {} found.", { ref_name });
     }
+
+    void empty_list(Globals& globals, const std::string& list_name) {
+        throw_err(globals, "List", "Empty list found {}.", { list_name });
+    }
 }

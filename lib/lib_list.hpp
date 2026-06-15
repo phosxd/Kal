@@ -30,7 +30,7 @@ namespace lib {
         BoxedValue list = get_or_make(list_name, globals);
         int size = TO_LIST(list.value)->items.size();
         if(size == 0) {
-            std::cerr << "error\n";
+            errors::empty_list(globals, list_name);
         }
         Value* first = copy(TO_LIST(list.value)->items[0]);
         list.gc();
@@ -41,7 +41,7 @@ namespace lib {
         BoxedValue list = get_or_make(list_name, globals);
         int size = TO_LIST(list.value)->items.size();
         if(size == 0) {
-            std::cerr << "error\n";
+            errors::empty_list(globals, list_name);
         }
         Value* last = copy(TO_LIST(list.value)->items[size - 1]);
         list.gc();
@@ -52,7 +52,7 @@ namespace lib {
         BoxedValue list = get_or_make(list_name, globals);
         int size = TO_LIST(list.value)->items.size();
         if(size == 0) {
-            std::cerr << "error\n";
+            errors::empty_list(globals, list_name);
         }
         delete TO_LIST(list.value)->items[size - 1];
         TO_LIST(list.value)->items.erase(TO_LIST(list.value)->items.begin() + size - 1);
@@ -63,7 +63,7 @@ namespace lib {
         BoxedValue list = get_or_make(list_name, globals);
         int size = TO_LIST(list.value)->items.size();
         if(size == 0) {
-            std::cerr << "error\n";
+            errors::empty_list(globals, list_name);
         }
         delete TO_LIST(list.value)->items[0];
         TO_LIST(list.value)->items.erase(TO_LIST(list.value)->items.begin());

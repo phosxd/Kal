@@ -546,7 +546,9 @@ namespace VarTable {
         }
         else if(TO_DICT(packed_items)) {
             if(len > TO_DICT(packed_items)->keys.size()) {
-                std::cerr << "more than enough items to unpack" << std::endl;
+                //std::cerr << "more than enough items to unpack" << std::endl;
+                // ERR:
+                errors::items_unpack(globals);
                 if(is_literal) {
                     delete packed_items;
                 }
@@ -554,7 +556,7 @@ namespace VarTable {
             }
             for(uint64_t j = 0; j < len; j++) {
                 if(TO_DICT(packed_items)->dict[items[j]] == nullptr) {
-                    std::cerr << "key \"" << items[j] << "\" does not exits." << std::endl;
+                    errors::key_error(globals, items[j]);
                     if(is_literal) {
                         delete packed_items;
                     }
