@@ -2,6 +2,7 @@
 
 #include <queue>
 #include <vector>
+#include <cstring>
 
 #include "../var.hpp"
 
@@ -26,6 +27,9 @@ namespace lib {
         }
         else if(TO_DICT(list.value)) {
             size = TO_DICT(list.value)->keys.size();
+        }
+        else if(TO_STR(list.value)) {
+            size = std::strlen(TO_STR(list.value)->str) - 2;
         }
         Value* size_value = make_value(std::to_string(size), globals);
         list.gc();
