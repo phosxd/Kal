@@ -1,9 +1,0 @@
-#!/usr/bin/env kal
-
-stdout "Writing data to a file [hello.txt]...\n"
-write "Hey Everyone!\n" -> "hello.txt"
-
-stdout "\nReading data from a file [hello.txt]...\n"
-var str: data
-read "hello.txt" -> $data
-stdout $data
