@@ -1,5 +1,5 @@
 <center>
-    <img alt="Kal Logo" src="https://raw.githubusercontent.com/KILLinefficiency/KalWebsite/refs/heads/master/static/logo.svg?token=GHSAT0AAAAAADY3VBN5ICSP7QFQWSQKF7XU2RTBUNQ">
+    <img alt="Kal Logo" src="https://raw.githubusercontent.com/KILLinefficiency/KalWebsite/refs/heads/master/static/logo.svg">
     <h1>Kal</h1>
 </center>
 
