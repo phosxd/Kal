@@ -572,9 +572,10 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
             std::string input;
             std::getline(std::cin, input);
             Value* input_value = new String('"' + input + '"');
-            if(cmd.target != "") {
-                VarTable::set(cmd.target, "", input_value, VAR, true, depth, true, globals);
-            };
+            if(cmd.target == "") {
+                return input_value;
+            }
+            VarTable::set(cmd.target, "", input_value, VAR, true, depth, true, globals);
         }
 
         else if(ins == "binWrite") {
