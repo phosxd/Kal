@@ -67,7 +67,6 @@ void spread_values(std::string& operand, std::vector<std::string>& values, uint6
 }
 
 Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bool top_return, Globals& globals) {
-    std::srand(std::time(0));
     int& depth = globals.depth;
     DeferStack& defer_stack = globals.defer_stack;
 
@@ -567,6 +566,57 @@ Value* line_exec(std::vector<Token>& tokens, bool auto_return, bool fn_defer, bo
                 return number;
             }
             VarTable::set(cmd.target, "", number, VAR, true, depth, true, globals);
+        }
+
+        else if(ins == "time") {
+            EXPECT(2);
+            std::string mode = cmd.values[0];
+            std::string precision = cmd.values[1];
+            auto clock = std::chrono::high_resolution_clock::now();
+            std::chrono::time_point<std::chrono::high_resolution_clock> clock2;
+            unsigned int raw_val = 0;
+            if(mode == "this") {
+                clock2 = globals.clock_start;
+            }
+            else if(mode == "sys") {
+                clock2 = clock2;
+            }
+            else {
+                line++;
+                continue;
+            }
+            if(precision == "us") {
+                raw_val = std::chrono::duration_cast<std::chrono::microseconds>(clock-clock2).count();
+            }
+            else if(precision == "ms") {
+                raw_val = std::chrono::duration_cast<std::chrono::milliseconds>(clock-clock2).count();
+            }
+            else if(precision == "s") {
+                raw_val = std::chrono::duration_cast<std::chrono::seconds>(clock-clock2).count();
+            }
+            else if(precision == "m") {
+                raw_val = std::chrono::duration_cast<std::chrono::minutes>(clock-clock2).count();
+            }
+            else if(precision == "h") {
+                raw_val = std::chrono::duration_cast<std::chrono::hours>(clock-clock2).count();
+            }
+            else if(precision == "d") {
+                raw_val = std::chrono::duration_cast<std::chrono::days>(clock-clock2).count();
+            }
+            else if(precision == "w") {
+                raw_val = std::chrono::duration_cast<std::chrono::weeks>(clock-clock2).count();
+            }
+            else if(precision == "M") {
+                raw_val = std::chrono::duration_cast<std::chrono::months>(clock-clock2).count();
+            }
+            else if(precision == "y") {
+                raw_val = std::chrono::duration_cast<std::chrono::years>(clock-clock2).count();
+            }
+            Value* val = new Number(std::to_string(raw_val));
+            if(cmd.target == "") {
+                return val;
+            }
+            VarTable::set(cmd.target, "", val, VAR, true, depth, true, globals);
         }
 
         else if(ins == "stdout") {

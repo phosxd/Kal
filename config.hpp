@@ -153,6 +153,7 @@ namespace p_config {
         { "binWrite", &group_3 },
         { "binRead", &group_3 },
         { "rand", &group_3 },
+        { "time", &group_3 },
 
         { "if", &group_4 },
         { "else", &group_4 },
